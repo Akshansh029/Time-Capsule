@@ -29,6 +29,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 @Tag(name = "Auth Controller", description = "APIs for authentication")
 public class AuthController {
+
     private final AuthService authService;
 
 
@@ -83,10 +84,5 @@ public class AuthController {
                 .orElseThrow(()-> new AuthenticationServiceException("RefreshToken not found"));
         LoginResponse loginResponseDto = authService.refreshToken(refreshToken);
         return ResponseEntity.status(HttpStatus.OK).body(loginResponseDto);
-    }
-
-    @GetMapping
-    public ResponseEntity<String> checkApi(){
-        return ResponseEntity.status(HttpStatus.OK).body("Working!!!");
     }
 }
