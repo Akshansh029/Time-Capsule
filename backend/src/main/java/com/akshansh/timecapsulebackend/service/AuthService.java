@@ -1,5 +1,10 @@
 package com.akshansh.timecapsulebackend.service;
 
+import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
+import com.akshansh.timecapsulebackend.exception.UserAlreadyExistsException;
+import com.akshansh.timecapsulebackend.mapper.UserMapper;
+import com.akshansh.timecapsulebackend.model.dto.LoginRequest;
+import com.akshansh.timecapsulebackend.model.dto.LoginResponse;
 import com.akshansh.timecapsulebackend.model.dto.RegisterUserRequest;
 import com.akshansh.timecapsulebackend.model.dto.UserDto;
 import com.akshansh.timecapsulebackend.model.entity.User;
@@ -13,6 +18,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -35,11 +43,12 @@ public class AuthService {
         User newUser = new User(
                 request.getName(),
                 request.getEmail(),
-                UserRole.VIEWER,
-                passwordEncoder.encode(request.getPassword()));
+                passwordEncoder.encode(request.getPassword()),
+                LocalDateTime.now()
+        );
 
         userRepo.save(newUser);
-        return convertToDto(newUser);
+        return UserMapper.toDto(newUser);
     }
 
     public LoginResponse loginUser(@Valid LoginRequest request) {
@@ -55,7 +64,7 @@ public class AuthService {
     }
 
     public LoginResponse refreshToken(String refreshToken) {
-        Long userId = jwtUtil.generateUserIdFromToken(refreshToken);  //refresh token is valid
+        UUID userId = jwtUtil.generateUserIdFromToken(refreshToken);  //refresh token is valid
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User with ID: " + userId + " not found"));
 
