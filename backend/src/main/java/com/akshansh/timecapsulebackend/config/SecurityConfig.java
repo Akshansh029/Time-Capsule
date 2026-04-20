@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request ->
                         request
                                 .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/oauth2/**").permitAll()
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/login/oauth2/**").permitAll()     // leave auth requests open
