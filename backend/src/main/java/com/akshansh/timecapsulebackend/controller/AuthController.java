@@ -1,10 +1,7 @@
 package com.akshansh.timecapsulebackend.controller;
 
 import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
-import com.akshansh.timecapsulebackend.model.dto.LoginRequest;
-import com.akshansh.timecapsulebackend.model.dto.LoginResponse;
-import com.akshansh.timecapsulebackend.model.dto.RegisterUserRequest;
-import com.akshansh.timecapsulebackend.model.dto.UserDto;
+import com.akshansh.timecapsulebackend.model.dto.*;
 import com.akshansh.timecapsulebackend.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,14 +33,23 @@ public class AuthController {
     @Operation(summary = "Register the user", description = "Register the user and add details in database")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User registered successfully",
-                    content = @Content(schema = @Schema(implementation = UserDto.class)))
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class)))
     })
     @PostMapping("/register")
-    public ResponseEntity<UserDto> registerUser(
-            @Valid @RequestBody RegisterUserRequest request
+    public ResponseEntity<LoginResponse> registerUser(
+            @Valid @RequestBody RegisterUserRequest request,
+            HttpServletResponse response
     ){
-        UserDto newUser = authService.registerUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+        TokenResponse registeredUserResp= authService.registerUser(request);
+
+        Cookie cookie = new Cookie("refreshToken", registeredUserResp.getRefreshToken());
+        cookie.setHttpOnly(true);       // http-only cookie
+        response.addCookie(cookie);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(LoginResponse.builder()
+                .message(registeredUserResp.getMessage())
+                .accessToken(registeredUserResp.getAccessToken())
+                .build());
     }
 
 
@@ -57,13 +63,16 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request,
             HttpServletResponse response
     ){
-        LoginResponse loginResp = authService.loginUser(request);
+        TokenResponse loginResp = authService.loginUser(request);
 
         Cookie cookie = new Cookie("refreshToken", loginResp.getRefreshToken());
         cookie.setHttpOnly(true);       // http-only cookie
         response.addCookie(cookie);
 
-        return ResponseEntity.status(HttpStatus.OK).body(loginResp);
+        return ResponseEntity.status(HttpStatus.OK).body(LoginResponse.builder()
+                .message(loginResp.getMessage())
+                .accessToken(loginResp.getAccessToken())
+                .build());
     }
 
     @Operation(summary = "Generate new access token", description = "Generate new access token with the help of refresh token")
@@ -82,7 +91,12 @@ public class AuthController {
                 .findFirst()
                 .map(Cookie::getValue)
                 .orElseThrow(()-> new AuthenticationServiceException("RefreshToken not found"));
-        LoginResponse loginResponseDto = authService.refreshToken(refreshToken);
-        return ResponseEntity.status(HttpStatus.OK).body(loginResponseDto);
+        TokenResponse loginResponseDto = authService.refreshToken(refreshToken);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                LoginResponse.builder()
+                        .message(loginResponseDto.getMessage())
+                        .accessToken(loginResponseDto.getAccessToken())
+                        .build()
+        );
     }
 }

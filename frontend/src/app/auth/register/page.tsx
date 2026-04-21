@@ -20,6 +20,7 @@ import {
 import { Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
 
 const registerSchema = z
   .object({
@@ -53,11 +54,23 @@ export default function RegisterPage() {
     try {
       const { confirmPassword, ...registerData } = data;
       const response = await api.post("/auth/register", registerData);
-      setAuth(response.data.user, response.data.token);
+      const { accessToken } = response.data;
+
+      // Store token first to allow subsequent requests
+      useAuthStore.getState().setAccessToken(accessToken);
+
+      // Fetch user profile
+      const userResponse = await api.get("/users/me");
+      const user = userResponse.data;
+
+      setAuth(user, accessToken);
+
+      toast.success("Legacy established", {
+        description: "Your vault is ready for memories.",
+      });
       router.push("/dashboard");
     } catch (error) {
-      console.error("Registration failed", error);
-      // In a real app, show a toast here
+      // Error is handled by interceptor
     } finally {
       setIsLoading(false);
     }

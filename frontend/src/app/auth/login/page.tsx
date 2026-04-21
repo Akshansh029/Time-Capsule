@@ -20,6 +20,7 @@ import {
 import { Shield, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -45,11 +46,23 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const response = await api.post("/auth/login", data);
-      setAuth(response.data.user, response.data.token);
+      const { accessToken } = response.data;
+
+      // Store token first to allow subsequent requests
+      useAuthStore.getState().setAccessToken(accessToken);
+
+      // Fetch user profile
+      const userResponse = await api.get("/users/me");
+      const user = userResponse.data;
+
+      setAuth(user, accessToken);
+
+      toast.success("Archive unlocked", {
+        description: "Welcome back, Curator.",
+      });
       router.push("/dashboard");
     } catch (error) {
-      console.error("Login failed", error);
-      // In a real app, show a toast here
+      // Error is handled by interceptor
     } finally {
       setIsLoading(false);
     }
