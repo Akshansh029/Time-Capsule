@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 7%; /* #131313 */
+    --foreground: 36 10% 89%; /* #E5E2E1 */
+
+    --card: 0 0% 7%;
+    --card-foreground: 36 10% 89%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 36 10% 89%;
+
+    --primary: 45 86% 63%; /* #F2CA50 */
+    --primary-foreground: 45 100% 12%; /* Dark brown for contrast */
+
+    --secondary: 40 100% 50%; /* #FFBF00 */
+    --secondary-foreground: 0 0% 7%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 41 18% 75%; /* #D0C5AF */
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 36 10% 89%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 36 10% 89%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 45 86% 63%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 36 10% 89%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 36 10% 89%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 36 10% 89%;
+
+    --primary: 45 86% 63%;
+    --primary-foreground: 45 100% 12%;
+
+    --secondary: 40 100% 50%;
+    --secondary-foreground: 0 0% 7%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 41 18% 75%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 36 10% 89%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 36 10% 89%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 45 86% 63%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-[#131313] text-foreground relative overflow-x-hidden;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+  body::before {
+    content: "";
+    @apply fixed top-0 left-0 w-full h-full -z-10 opacity-30 pointer-events-none;
+    background:
+      radial-gradient(circle at 0% 0%, #d4af37 0%, transparent 40%),
+      radial-gradient(circle at 100% 100%, #d4af37 0%, transparent 40%);
+    filter: blur(100px);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+  .gold-gradient {
+    @apply bg-gradient-to-br from-[#f2ca50] to-[#d4af37];
+  }
+}
