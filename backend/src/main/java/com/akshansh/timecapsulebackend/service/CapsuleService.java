@@ -120,4 +120,20 @@ public class CapsuleService {
         capsuleRepo.save(capsule);
         return CapsuleMapper.toDto(capsule);
     }
+
+    @Transactional
+    public void deleteCapsule(UUID capsuleId){
+        UUID currentUserId = getCurrentUser().getUserId();
+
+        Capsule capsule = capsuleRepo.findById(capsuleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+
+        boolean isOwner = capsule.getOwner().getId().equals(currentUserId);
+
+        if (!isOwner) {
+            throw new AccessDeniedException("You do not have access to this capsule");
+        }
+
+        capsuleRepo.deleteById(capsuleId);
+    }
 }
