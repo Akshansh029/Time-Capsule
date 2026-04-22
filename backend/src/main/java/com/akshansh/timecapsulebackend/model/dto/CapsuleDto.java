@@ -14,9 +14,12 @@ import java.util.UUID;
 public class CapsuleDto {
     private UUID id;
     private String title;
+    private String description;
     private CapsuleStatus status;
     private LocalDateTime unlockDate;
     private boolean isPrivate;
-//    private String description;
-//    private LocalDateTime createdAt;
+    private LocalDateTime createdAt;
+    private UUID ownerId;
+    private String ownerName;
+    private int memberCount;
 }
