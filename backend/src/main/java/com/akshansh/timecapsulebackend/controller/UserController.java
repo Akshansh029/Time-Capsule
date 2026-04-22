@@ -35,10 +35,4 @@ public class UserController {
         ActiveUserResponse userDetails = userService.getActiveUserDetails();
         return ResponseEntity.status(HttpStatus.OK).body(userDetails);
     }
-
-
-    @GetMapping
-    public ResponseEntity<String> getUser(){
-        return ResponseEntity.ok("User Returned");
-    }
 }
