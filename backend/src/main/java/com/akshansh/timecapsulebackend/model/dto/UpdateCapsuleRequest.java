@@ -1,33 +1,22 @@
 package com.akshansh.timecapsulebackend.model.dto;
 
 import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class CreateCapsuleRequest {
-
-    @NotBlank(message = "Title is required")
+public class UpdateCapsuleRequest {
     @Size(min = 3, max = 75, message = "Title must be between 3 to 75 characters")
     private String title;
 
-    @NotBlank(message = "Description is required")
     @Size(max = 100, message = "Description can be maximum of 1000 characters")
     private String description;
 
-    @NotNull(message = "Capsule status cannot be null")
     private CapsuleStatus status;
 
-    @NotNull(message = "Unlock date cannot be null")
     private LocalDateTime unlockDate;
 
-    @NotNull(message = "Public/Private should be specified")
     private boolean isPrivate;
 }

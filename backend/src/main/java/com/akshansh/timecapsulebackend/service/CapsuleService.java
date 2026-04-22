@@ -1,10 +1,12 @@
 package com.akshansh.timecapsulebackend.service;
 
+import com.akshansh.timecapsulebackend.exception.CapsuleAlreadyUnlockedException;
 import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
 import com.akshansh.timecapsulebackend.mapper.CapsuleMapper;
 import com.akshansh.timecapsulebackend.model.dto.CapsuleDto;
 import com.akshansh.timecapsulebackend.model.dto.CreateCapsuleRequest;
 import com.akshansh.timecapsulebackend.model.dto.UnlockedCapsuleDto;
+import com.akshansh.timecapsulebackend.model.dto.UpdateCapsuleRequest;
 import com.akshansh.timecapsulebackend.model.entity.Capsule;
 import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
 import com.akshansh.timecapsulebackend.model.entity.User;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.akshansh.timecapsulebackend.util.UserUtil.getCurrentUser;
@@ -72,11 +75,49 @@ public class CapsuleService {
             throw new AccessDeniedException("You do not have access to this capsule");
         }
 
-        // --- Return based on status (not unlock date) ---
+        // Return based on status (not unlock date)
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
             return CapsuleMapper.toUnlockedCapsuleDto(capsule);
         }
 
         return CapsuleMapper.toLockedCapsuleDto(capsule);
+    }
+
+    @Transactional
+    public CapsuleDto updateCapsule(UpdateCapsuleRequest request, UUID capsuleId){
+        UUID currentUserId = getCurrentUser().getUserId();
+
+        Capsule capsule = capsuleRepo.findById(capsuleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+
+        boolean isOwner = capsule.getOwner().getId().equals(currentUserId);
+
+        if (!isOwner) {
+            throw new AccessDeniedException("You do not have access to this capsule");
+        }
+        if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
+            throw new CapsuleAlreadyUnlockedException("Capsule already unlocked");
+        }
+
+        // Updates fields if they are not null or empty.
+        if (Objects.nonNull(request.getTitle()) && !"".equalsIgnoreCase(request.getTitle())) {
+            capsule.setTitle(request.getTitle());
+        }
+        if (Objects.nonNull(request.getDescription()) && !"".equalsIgnoreCase(request.getDescription())) {
+            capsule.setDescription(request.getDescription());
+        }
+        if (Objects.nonNull(request.getStatus())) {
+            capsule.setStatus(request.getStatus());
+        }
+        if (Objects.nonNull(request.getUnlockDate())) {
+            capsule.setUnlockDate(request.getUnlockDate());
+        }
+        if (Objects.nonNull(request.isPrivate())) {
+            capsule.setPrivate(request.isPrivate());
+        }
+
+        // Save the updated capsule
+        capsuleRepo.save(capsule);
+        return CapsuleMapper.toDto(capsule);
     }
 }

@@ -51,6 +51,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(CapsuleAlreadyUnlockedException.class)
+    public ResponseEntity<ErrorResponse> handleCapsuleAlreadyUnlocked(CapsuleAlreadyUnlockedException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(InvalidAuthCodeException.class)
     public ResponseEntity<ErrorResponse> handleInvalidAuthCode(InvalidAuthCodeException ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
