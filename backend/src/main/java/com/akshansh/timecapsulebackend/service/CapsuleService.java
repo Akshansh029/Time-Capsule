@@ -3,13 +3,9 @@ package com.akshansh.timecapsulebackend.service;
 import com.akshansh.timecapsulebackend.exception.CapsuleAlreadyUnlockedException;
 import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
 import com.akshansh.timecapsulebackend.mapper.CapsuleMapper;
-import com.akshansh.timecapsulebackend.model.dto.CapsuleDto;
-import com.akshansh.timecapsulebackend.model.dto.CreateCapsuleRequest;
-import com.akshansh.timecapsulebackend.model.dto.UnlockedCapsuleDto;
-import com.akshansh.timecapsulebackend.model.dto.UpdateCapsuleRequest;
-import com.akshansh.timecapsulebackend.model.entity.Capsule;
-import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
-import com.akshansh.timecapsulebackend.model.entity.User;
+import com.akshansh.timecapsulebackend.model.dto.*;
+import com.akshansh.timecapsulebackend.model.entity.*;
+import com.akshansh.timecapsulebackend.repository.CapsuleContentRepo;
 import com.akshansh.timecapsulebackend.repository.CapsuleMemberRepo;
 import com.akshansh.timecapsulebackend.repository.CapsuleRepository;
 import com.akshansh.timecapsulebackend.repository.UserRepository;
@@ -22,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -34,6 +32,7 @@ public class CapsuleService {
     private final CapsuleRepository capsuleRepo;
     private final UserRepository userRepo;
     private final CapsuleMemberRepo capsuleMemberRepo;
+    private final CapsuleContentRepo capsuleContentRepo;
 
     @Transactional
     public CapsuleDto createCapsule(CreateCapsuleRequest request){
@@ -135,5 +134,76 @@ public class CapsuleService {
         }
 
         capsuleRepo.deleteById(capsuleId);
+    }
+
+
+    @Transactional
+    public void addContentsToCapsule(List<AddContentRequestDto> request, UUID capsuleId){
+        UUID currentUserId = getCurrentUser().getUserId();
+
+        User requester = userRepo.findById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Capsule capsule = capsuleRepo.findById(capsuleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+
+        // Can't add content to an already unlocked capsule
+        if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
+            throw new IllegalStateException("Cannot add content to an unlocked capsule");
+        }
+
+        // Only owner or contributors can add content
+        boolean isOwner = capsule.getOwner().getId().equals(currentUserId);
+        boolean isContributor = capsuleMemberRepo
+                .existsByCapsuleIdAndUserIdAndRole(capsuleId, currentUserId, MemberRole.CONTRIBUTOR);
+
+        if (!isOwner && !isContributor) {
+            throw new AccessDeniedException("You do not have permission to add content");
+        }
+
+        List<CapsuleContent> contents = new ArrayList<>();
+        for(AddContentRequestDto contentDto : request){
+            CapsuleContent content = new CapsuleContent();
+
+            content.setCapsule(capsule);
+            content.setAddedBy(requester);
+            content.setType(contentDto.getType());
+            content.setBody(contentDto.getBody());
+            content.setFileUrl(contentDto.getFileUrl());
+            content.setAddedAt(LocalDateTime.now());
+
+            contents.add(content);
+        }
+
+        // save content and capsule
+        capsule.setContents(contents);
+        capsuleRepo.save(capsule);
+    }
+
+    @Transactional
+    public void removeContent(UUID capsuleId, UUID contentId) {
+        UUID currentUserId = getCurrentUser().getUserId();
+
+        CapsuleContent content = capsuleContentRepo.findById(contentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Content not found"));
+
+        // Content must belong to this capsule
+        if (!content.getCapsule().getId().equals(capsuleId)) {
+            throw new ResourceNotFoundException("Content not found in this capsule");
+        }
+
+        if (content.getCapsule().getStatus() == CapsuleStatus.UNLOCKED) {
+            throw new CapsuleAlreadyUnlockedException("Cannot remove content from an unlocked capsule");
+        }
+
+        // Only the person who added it OR the capsule owner can delete
+        boolean isOwner = content.getCapsule().getOwner().getId().equals(currentUserId);
+        boolean isContentAuthor = content.getAddedBy().getId().equals(currentUserId);
+
+        if (!isOwner && !isContentAuthor) {
+            throw new AccessDeniedException("You do not have permission to remove this content");
+        }
+
+        capsuleContentRepo.delete(content);
     }
 }
