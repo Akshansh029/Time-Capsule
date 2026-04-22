@@ -34,6 +34,24 @@ public class CapsuleService {
     private final CapsuleMemberRepo capsuleMemberRepo;
     private final CapsuleContentRepo capsuleContentRepo;
 
+    private boolean isOwner(Capsule capsule, UUID currentUserId){
+        return capsule.getOwner().getId().equals(currentUserId);
+    }
+
+    private boolean isMember(UUID capsuleId, UUID currentUserId){
+        return capsuleMemberRepo
+                .existsByCapsuleIdAndUserId(capsuleId, currentUserId);
+    }
+
+    private boolean isContributor(UUID capsuleId, UUID currentUserId){
+        return capsuleMemberRepo
+                .existsByCapsuleIdAndUserIdAndRole(capsuleId, currentUserId, MemberRole.CONTRIBUTOR);
+    }
+
+    private boolean isContentAuthor(CapsuleContent content, UUID currentUserId){
+        return content.getAddedBy().getId().equals(currentUserId);
+    }
+
     @Transactional
     public CapsuleDto createCapsule(CreateCapsuleRequest request){
         UUID currentUserId = getCurrentUser().getUserId();
@@ -65,12 +83,7 @@ public class CapsuleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
 
         // Private capsules are only visible to owner + members
-        boolean isOwner = capsule.getOwner().getId().equals(currentUserId);
-
-        boolean isMember = capsuleMemberRepo
-                .existsByCapsuleIdAndUserId(capsuleId, currentUserId);
-
-        if (capsule.isPrivate() && !isOwner && !isMember) {
+        if (capsule.isPrivate() && !isOwner(capsule, currentUserId) && !isMember(capsuleId, currentUserId)) {
             throw new AccessDeniedException("You do not have access to this capsule");
         }
 
@@ -89,9 +102,7 @@ public class CapsuleService {
         Capsule capsule = capsuleRepo.findById(capsuleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
 
-        boolean isOwner = capsule.getOwner().getId().equals(currentUserId);
-
-        if (!isOwner) {
+        if (!isOwner(capsule, currentUserId)) {
             throw new AccessDeniedException("You do not have access to this capsule");
         }
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
@@ -127,9 +138,7 @@ public class CapsuleService {
         Capsule capsule = capsuleRepo.findById(capsuleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
 
-        boolean isOwner = capsule.getOwner().getId().equals(currentUserId);
-
-        if (!isOwner) {
+        if (!isOwner(capsule, currentUserId)) {
             throw new AccessDeniedException("You do not have access to this capsule");
         }
 
@@ -153,11 +162,7 @@ public class CapsuleService {
         }
 
         // Only owner or contributors can add content
-        boolean isOwner = capsule.getOwner().getId().equals(currentUserId);
-        boolean isContributor = capsuleMemberRepo
-                .existsByCapsuleIdAndUserIdAndRole(capsuleId, currentUserId, MemberRole.CONTRIBUTOR);
-
-        if (!isOwner && !isContributor) {
+        if (!isOwner(capsule, currentUserId) && !isContributor(capsuleId, currentUserId)) {
             throw new AccessDeniedException("You do not have permission to add content");
         }
 
@@ -197,13 +202,16 @@ public class CapsuleService {
         }
 
         // Only the person who added it OR the capsule owner can delete
-        boolean isOwner = content.getCapsule().getOwner().getId().equals(currentUserId);
-        boolean isContentAuthor = content.getAddedBy().getId().equals(currentUserId);
-
-        if (!isOwner && !isContentAuthor) {
+        if (!isOwner(content.getCapsule(), currentUserId) && !isContentAuthor(content, currentUserId)) {
             throw new AccessDeniedException("You do not have permission to remove this content");
         }
 
         capsuleContentRepo.delete(content);
+    }
+
+    public Page<CapsuleContentDto> getAllContentsForCapsule(UUID capsuleId, int pageNo, int pageSize){
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+
+        return capsuleContentRepo.findAllContent(pageable, capsuleId);
     }
 }
