@@ -210,6 +210,13 @@ public class CapsuleService {
     }
 
     public Page<CapsuleContentDto> getAllContentsForCapsule(UUID capsuleId, int pageNo, int pageSize){
+        Capsule capsule = capsuleRepo.findById(capsuleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+
+        if (capsule.getStatus() == CapsuleStatus.LOCKED) {
+            throw new CapsuleAlreadyUnlockedException("Capsule is locked");
+        }
+
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
         return capsuleContentRepo.findAllContent(pageable, capsuleId);
