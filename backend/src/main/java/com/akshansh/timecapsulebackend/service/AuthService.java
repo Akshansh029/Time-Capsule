@@ -8,6 +8,7 @@ import com.akshansh.timecapsulebackend.model.entity.User;
 import com.akshansh.timecapsulebackend.model.entity.UserPrincipal;
 import com.akshansh.timecapsulebackend.repository.UserRepository;
 import com.akshansh.timecapsulebackend.util.JwtUtil;
+import io.jsonwebtoken.JwtException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -73,7 +74,7 @@ public class AuthService {
     public TokenResponse refreshToken(String refreshToken) {
         UUID userId = jwtUtil.generateUserIdFromToken(refreshToken);  //refresh token is valid
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with ID: " + userId + " not found"));
+                .orElseThrow(() -> new JwtException("Invalid token"));
 
         UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(user.getEmail());
 

@@ -52,6 +52,8 @@ public class SecurityConfig {
                         request
                                 .requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
+                                .requestMatchers("/docs/**").permitAll()
+                                .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers("/oauth2/**").permitAll()
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/login/oauth2/**").permitAll()     // leave auth requests open

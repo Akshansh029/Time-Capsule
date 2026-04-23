@@ -33,7 +33,11 @@ public class AuthController {
     @Operation(summary = "Register the user", description = "Register the user and add details in database")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User registered successfully",
-                    content = @Content(schema = @Schema(implementation = LoginResponse.class)))
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request body",
+                    content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "400", description = "User already exists",
+                    content = @Content(schema = @Schema()))
     })
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> registerUser(
@@ -56,7 +60,9 @@ public class AuthController {
     @Operation(summary = "Login the user", description = "Sign in the user and generate JWT token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login successfully",
-                    content = @Content(schema = @Schema(implementation = LoginResponse.class)))
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request body",
+                    content = @Content(schema = @Schema())),
     })
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(
@@ -78,7 +84,13 @@ public class AuthController {
     @Operation(summary = "Generate new access token", description = "Generate new access token with the help of refresh token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login successfully",
-                    content = @Content(schema = @Schema(implementation = LoginResponse.class)))
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))),
+            @ApiResponse(responseCode = "400", description = "RefreshToken not found",
+                    content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "401", description = "Invalid token",
+                    content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(schema = @Schema())),
     })
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refreshToken(HttpServletRequest request){
