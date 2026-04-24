@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+import static com.akshansh.timecapsulebackend.util.SlugUtil.generateSlug;
+
 @Component
 public class CapsuleMapper {
 
@@ -17,7 +19,6 @@ public class CapsuleMapper {
         return CapsuleDto.builder()
                 .id(capsule.getId())
                 .title(capsule.getTitle())
-                .description(capsule.getDescription())
                 .status(capsule.getStatus())
                 .unlockDate(capsule.getUnlockDate())
                 .isPrivate(capsule.isPrivate())
@@ -29,6 +30,7 @@ public class CapsuleMapper {
 
     public static Capsule toEntity(CreateCapsuleRequest request, User owner){
         return Capsule.builder()
+                .slug(generateSlug(request.getTitle()))
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .status(CapsuleStatus.LOCKED)
@@ -42,6 +44,7 @@ public class CapsuleMapper {
     public static LockedCapsuleDto toLockedCapsuleDto(Capsule capsule) {
         LockedCapsuleDto dto = LockedCapsuleDto.builder().build();
         mapBase(capsule, dto);
+        dto.setDescription(capsule.getDescription());
         dto.setDaysUntilUnlock(
                 ChronoUnit.DAYS.between(LocalDateTime.now(), capsule.getUnlockDate())
         );
@@ -51,6 +54,7 @@ public class CapsuleMapper {
     public static UnlockedCapsuleDto toUnlockedCapsuleDto(Capsule capsule) {
         UnlockedCapsuleDto dto = UnlockedCapsuleDto.builder().build();
         mapBase(capsule, dto);
+        dto.setDescription(capsule.getDescription());
         dto.setContents(
                 capsule.getContents().stream()
                         .map(CapsuleMapper::toContentDto)
@@ -63,7 +67,6 @@ public class CapsuleMapper {
     private static void mapBase(Capsule capsule, CapsuleDto dto) {
         dto.setId(capsule.getId());
         dto.setTitle(capsule.getTitle());
-        dto.setDescription(capsule.getDescription());
         dto.setStatus(capsule.getStatus());
         dto.setUnlockDate(capsule.getUnlockDate());
         dto.setPrivate(capsule.isPrivate());

@@ -16,8 +16,8 @@ import java.util.UUID;
 @SuperBuilder
 public class CapsuleDto {
     private UUID id;
+    private String slug;
     private String title;
-    private String description;
     private CapsuleStatus status;
     private LocalDateTime unlockDate;
     private boolean isPrivate;

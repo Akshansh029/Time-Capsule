@@ -9,5 +9,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 public class LockedCapsuleDto extends CapsuleDto {
+    private String description;
     private Long daysUntilUnlock;
 }

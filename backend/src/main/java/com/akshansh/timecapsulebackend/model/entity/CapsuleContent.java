@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,6 +29,7 @@ public class CapsuleContent {
     @NotNull(message = "Content type is required")
     @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
+    @ColumnTransformer(write = "?::content_type")
     private ContentType type;
 
     @Column(name = "body", nullable = true)

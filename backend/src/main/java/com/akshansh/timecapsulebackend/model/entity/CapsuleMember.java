@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.util.UUID;
 
@@ -29,5 +30,6 @@ public class CapsuleMember {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
+    @ColumnTransformer(write = "?::member_role")
     private MemberRole role;
 }
