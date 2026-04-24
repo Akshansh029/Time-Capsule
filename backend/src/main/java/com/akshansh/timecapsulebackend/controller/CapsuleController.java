@@ -70,9 +70,9 @@ public class CapsuleController {
             @ApiResponse(responseCode = "404", description = "Capsule not found",
                     content = @Content(schema = @Schema()))
     })
-    @GetMapping("/{id}")
-    public ResponseEntity<CapsuleDto> getCapsuleDetails(@PathVariable UUID id){
-        CapsuleDto capsuleResponse = capsuleService.getCapsuleDetails(id);
+    @GetMapping("/{slug}")
+    public ResponseEntity<CapsuleDto> getCapsuleDetails(@PathVariable String slug){
+        CapsuleDto capsuleResponse = capsuleService.getCapsuleDetails(slug);
         return ResponseEntity.status(HttpStatus.OK).body(capsuleResponse);
     }
 

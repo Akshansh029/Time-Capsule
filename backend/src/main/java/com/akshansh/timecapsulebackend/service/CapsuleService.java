@@ -81,14 +81,17 @@ public class CapsuleService {
         return capsuleRepo.findAllCapsulesWithSearch(pageable, currentUserId, search);
     }
 
-    public CapsuleDto getCapsuleDetails(UUID capsuleId) {
+    public CapsuleDto getCapsuleDetails(String slug) {
         UUID currentUserId = getCurrentUser().getUserId();
 
-        Capsule capsule = capsuleRepo.findById(capsuleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+        Capsule capsule = capsuleRepo.findBySlug(slug);
+
+        if(capsule == null){
+            throw new ResourceNotFoundException("Capsule not found");
+        }
 
         // Private capsules are only visible to owner + members
-        if (capsule.isPrivate() && !isOwner(capsule, currentUserId) && !isMember(capsuleId, currentUserId)) {
+        if (capsule.isPrivate() && !isOwner(capsule, currentUserId) && !isMember(capsule.getId(), currentUserId)) {
             throw new AccessDeniedException("You do not have access to this capsule");
         }
 

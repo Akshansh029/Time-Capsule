@@ -35,4 +35,6 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
             @Param("userId") UUID userId,
             @Param("search") String search
     );
+
+    Capsule findBySlug(String slug);
 }

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -20,6 +21,9 @@ public class Capsule {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(unique = true, nullable = false)
+    private String slug;
+
     @NotBlank(message = "Title is required")
     @Size(min = 3, max = 75, message = "Title must be between 3 to 75 characters")
     @Column(name = "title", nullable = false)
@@ -31,7 +35,8 @@ public class Capsule {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, columnDefinition = "capsule_status")
+    @ColumnTransformer(write = "?::capsule_status")
     private CapsuleStatus status;
 
     @NotNull(message = "Unlock date cannot be null")
