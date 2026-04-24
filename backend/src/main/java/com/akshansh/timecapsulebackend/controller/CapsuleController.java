@@ -89,12 +89,12 @@ public class CapsuleController {
             @ApiResponse(responseCode = "409", description = "Capsule already unlocked",
                     content = @Content(schema = @Schema()))
     })
-    @PutMapping("/{id}")
+    @PutMapping("/{slug}")
     public ResponseEntity<CapsuleDto> updateCapsule(
             @RequestBody @Valid UpdateCapsuleRequest request,
-            @PathVariable UUID id
+            @PathVariable String slug
     ){
-        CapsuleDto updatedCapsule = capsuleService.updateCapsule(request, id);
+        CapsuleDto updatedCapsule = capsuleService.updateCapsule(request, slug);
         return ResponseEntity.status(HttpStatus.OK).body(updatedCapsule);
     }
 
@@ -102,9 +102,9 @@ public class CapsuleController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Capsule deleted successfully")
     })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCapsule(@PathVariable UUID id){
-        capsuleService.deleteCapsule(id);
+    @DeleteMapping("/{slug}")
+    public ResponseEntity<Void> deleteCapsule(@PathVariable String slug){
+        capsuleService.deleteCapsule(slug);
         return ResponseEntity.noContent().build();
     }
 
@@ -118,12 +118,12 @@ public class CapsuleController {
             @ApiResponse(responseCode = "409", description = "Capsule already unlocked",
                     content = @Content(schema = @Schema()))
     })
-    @PostMapping("/{id}/contents")
+    @PostMapping("/{slug}/contents")
     public ResponseEntity<Void> addContentToCapsules(
-            @PathVariable UUID id,
+            @PathVariable String slug,
             @RequestBody @Valid @Size(min = 1, max = 10) List<AddContentRequestDto> requestDtoList
             ){
-        capsuleService.addContentsToCapsule(requestDtoList, id);
+        capsuleService.addContentsToCapsule(requestDtoList, slug);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -134,13 +134,13 @@ public class CapsuleController {
             @ApiResponse(responseCode = "409", description = "Capsule already unlocked",
                     content = @Content(schema = @Schema()))
     })
-    @GetMapping("/{id}/contents")
+    @GetMapping("/{slug}/contents")
     public ResponseEntity<Page<CapsuleContentDto>> getAllContentsForCapsule(
             @RequestParam(defaultValue = "0", required = false) int pageNo,
             @RequestParam(defaultValue = "10", required = false) int pageSize,
-            @PathVariable UUID id
+            @PathVariable String slug
     ){
-        Page<CapsuleContentDto> contentResponse = capsuleService.getAllContentsForCapsule(id, pageNo, pageSize);
+        Page<CapsuleContentDto> contentResponse = capsuleService.getAllContentsForCapsule(slug, pageNo, pageSize);
         return ResponseEntity.status(HttpStatus.OK).body(contentResponse);
     }
 }

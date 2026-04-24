@@ -37,4 +37,6 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
     );
 
     Capsule findBySlug(String slug);
+
+    void deleteBySlug(String slug);
 }

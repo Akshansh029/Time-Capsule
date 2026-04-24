@@ -104,11 +104,14 @@ public class CapsuleService {
     }
 
     @Transactional
-    public CapsuleDto updateCapsule(UpdateCapsuleRequest request, UUID capsuleId){
+    public CapsuleDto updateCapsule(UpdateCapsuleRequest request, String slug){
         UUID currentUserId = getCurrentUser().getUserId();
 
-        Capsule capsule = capsuleRepo.findById(capsuleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+        Capsule capsule = capsuleRepo.findBySlug(slug);
+
+        if(capsule == null){
+            throw new ResourceNotFoundException("Capsule not found");
+        }
 
         if (!isOwner(capsule, currentUserId)) {
             throw new AccessDeniedException("You do not have access to this capsule");
@@ -140,29 +143,35 @@ public class CapsuleService {
     }
 
     @Transactional
-    public void deleteCapsule(UUID capsuleId){
+    public void deleteCapsule(String slug){
         UUID currentUserId = getCurrentUser().getUserId();
 
-        Capsule capsule = capsuleRepo.findById(capsuleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+        Capsule capsule = capsuleRepo.findBySlug(slug);
+
+        if(capsule == null){
+            throw new ResourceNotFoundException("Capsule not found");
+        }
 
         if (!isOwner(capsule, currentUserId)) {
             throw new AccessDeniedException("You do not have access to this capsule");
         }
 
-        capsuleRepo.deleteById(capsuleId);
+        capsuleRepo.deleteBySlug(slug);
     }
 
 
     @Transactional
-    public void addContentsToCapsule(List<AddContentRequestDto> request, UUID capsuleId){
+    public void addContentsToCapsule(List<AddContentRequestDto> request, String slug){
         UUID currentUserId = getCurrentUser().getUserId();
 
         User requester = userRepo.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Capsule capsule = capsuleRepo.findById(capsuleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+        Capsule capsule = capsuleRepo.findBySlug(slug);
+
+        if(capsule == null){
+            throw new ResourceNotFoundException("Capsule not found");
+        }
 
         // Can't add content to an already unlocked capsule
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
@@ -170,7 +179,7 @@ public class CapsuleService {
         }
 
         // Only owner or contributors can add content
-        if (!isOwner(capsule, currentUserId) && !isContributor(capsuleId, currentUserId)) {
+        if (!isOwner(capsule, currentUserId) && !isContributor(capsule.getId(), currentUserId)) {
             throw new AccessDeniedException("You do not have permission to add content");
         }
 
@@ -217,9 +226,12 @@ public class CapsuleService {
         capsuleContentRepo.delete(content);
     }
 
-    public Page<CapsuleContentDto> getAllContentsForCapsule(UUID capsuleId, int pageNo, int pageSize){
-        Capsule capsule = capsuleRepo.findById(capsuleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+    public Page<CapsuleContentDto> getAllContentsForCapsule(String slug, int pageNo, int pageSize){
+        Capsule capsule = capsuleRepo.findBySlug(slug);
+
+        if(capsule == null){
+            throw new ResourceNotFoundException("Capsule not found");
+        }
 
         if (capsule.getStatus() == CapsuleStatus.LOCKED) {
             throw new CapsuleAlreadyUnlockedException("Capsule is locked");
@@ -227,6 +239,6 @@ public class CapsuleService {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        return capsuleContentRepo.findAllContent(pageable, capsuleId);
+        return capsuleContentRepo.findAllContent(pageable, capsule.getId());
     }
 }
