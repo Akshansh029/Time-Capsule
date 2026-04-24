@@ -143,7 +143,7 @@ public class CapsuleController {
             @PathVariable UUID contentId
             ){
         capsuleService.removeContent(slug, contentId);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Get all contents of a capsule", description = "Fetch and return all the contents of a capsule")

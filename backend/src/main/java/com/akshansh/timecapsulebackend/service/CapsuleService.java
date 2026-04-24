@@ -194,6 +194,7 @@ public class CapsuleService {
             content.setFileUrl(contentDto.getFileUrl());
             content.setAddedAt(LocalDateTime.now());
 
+            capsuleContentRepo.save(content);
             contents.add(content);
         }
 
