@@ -18,6 +18,7 @@ public class CapsuleMapper {
     public static CapsuleDto toDto(Capsule capsule){
         return CapsuleDto.builder()
                 .id(capsule.getId())
+                .slug(capsule.getSlug())
                 .title(capsule.getTitle())
                 .status(capsule.getStatus())
                 .unlockDate(capsule.getUnlockDate())
@@ -35,7 +36,7 @@ public class CapsuleMapper {
                 .description(request.getDescription())
                 .status(CapsuleStatus.LOCKED)
                 .unlockDate(request.getUnlockDate())
-                .isPrivate(request.isPrivate())
+                .isPrivate(request.getIsPrivate())
                 .owner(owner)
                 .createdAt(LocalDateTime.now())
                 .build();

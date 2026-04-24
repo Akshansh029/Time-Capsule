@@ -26,5 +26,5 @@ public class CreateCapsuleRequest {
     private LocalDateTime unlockDate;
 
     @NotNull(message = "Public/Private should be specified")
-    private boolean isPrivate;
+    private Boolean isPrivate;
 }

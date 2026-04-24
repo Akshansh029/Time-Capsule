@@ -127,6 +127,25 @@ public class CapsuleController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @Operation(summary = "Remove a content from a capsule", description = "Remove a specific content from the specific capsule")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Contents removed successfully"),
+            @ApiResponse(responseCode = "403", description = "Unauthorized action",
+                    content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "User/Capsule not found",
+                    content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "409", description = "Capsule already unlocked",
+                    content = @Content(schema = @Schema()))
+    })
+    @PostMapping("/{slug}/contents/{contentId}")
+    public ResponseEntity<Void> removeContentFromCapsule(
+            @PathVariable String slug,
+            @PathVariable UUID contentId
+            ){
+        capsuleService.removeContent(slug, contentId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
     @Operation(summary = "Get all contents of a capsule", description = "Fetch and return all the contents of a capsule")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Capsules retrieved successfully",

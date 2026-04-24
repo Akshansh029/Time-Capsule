@@ -203,14 +203,20 @@ public class CapsuleService {
     }
 
     @Transactional
-    public void removeContent(UUID capsuleId, UUID contentId) {
+    public void removeContent(String slug, UUID contentId) {
         UUID currentUserId = getCurrentUser().getUserId();
+
+        Capsule capsule = capsuleRepo.findBySlug(slug);
+
+        if(capsule == null){
+            throw new ResourceNotFoundException("Capsule not found");
+        }
 
         CapsuleContent content = capsuleContentRepo.findById(contentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Content not found"));
 
         // Content must belong to this capsule
-        if (!content.getCapsule().getId().equals(capsuleId)) {
+        if (!content.getCapsule().getId().equals(capsule.getId())) {
             throw new ResourceNotFoundException("Content not found in this capsule");
         }
 
