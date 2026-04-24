@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const DashboardPage = () => {
   const [capsules, setCapsules] = useState<CapsuleDto[]>([]);
@@ -144,10 +145,12 @@ const DashboardPage = () => {
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </form>
-                <Button className="gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs px-6 hover:scale-105 transition-transform active:scale-95">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New
-                </Button>
+                <Link href="/dashboard/create">
+                  <Button className="gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs px-6 hover:scale-105 transition-transform active:scale-95">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create New
+                  </Button>
+                </Link>
               </div>
             </div>
 
@@ -179,12 +182,14 @@ const DashboardPage = () => {
                     archive yet.
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  className="border-primary/30 text-primary hover:bg-primary/10 uppercase tracking-widest text-xs"
-                >
-                  Begin Your Legacy
-                </Button>
+                <Link href="/dashboard/create">
+                  <Button
+                    variant="outline"
+                    className="border-primary/30 text-primary hover:bg-primary/10 uppercase tracking-widest text-xs"
+                  >
+                    Begin Your Legacy
+                  </Button>
+                </Link>
               </div>
             )}
 

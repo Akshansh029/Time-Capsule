@@ -20,3 +20,10 @@ export interface PagedResponse<T> {
   totalPages: number;
   last: boolean;
 }
+
+export interface CreateCapsuleRequest {
+  title: string;
+  description: string;
+  unlockDate: string; // ISO date string
+  isPrivate: boolean;
+}
