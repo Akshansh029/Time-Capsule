@@ -3,6 +3,7 @@ package com.akshansh.timecapsulebackend.mapper;
 import com.akshansh.timecapsulebackend.model.dto.*;
 import com.akshansh.timecapsulebackend.model.entity.Capsule;
 import com.akshansh.timecapsulebackend.model.entity.CapsuleContent;
+import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
 import com.akshansh.timecapsulebackend.model.entity.User;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,6 @@ public class CapsuleMapper {
                 .createdAt(capsule.getCreatedAt())
                 .ownerId(capsule.getOwner().getId())
                 .ownerName(capsule.getOwner().getName())
-                .memberCount(capsule.getMembers().size())
                 .build();
     }
 
@@ -31,7 +31,7 @@ public class CapsuleMapper {
         return Capsule.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .status(request.getStatus())
+                .status(CapsuleStatus.LOCKED)
                 .unlockDate(request.getUnlockDate())
                 .isPrivate(request.isPrivate())
                 .owner(owner)
@@ -70,7 +70,6 @@ public class CapsuleMapper {
         dto.setCreatedAt(capsule.getCreatedAt());
         dto.setOwnerId(capsule.getOwner().getId());
         dto.setOwnerName(capsule.getOwner().getName());
-        dto.setMemberCount(capsule.getMembers().size());
     }
 
     private static CapsuleContentDto toContentDto(CapsuleContent content) {

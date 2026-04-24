@@ -24,5 +24,4 @@ public class CapsuleDto {
     private LocalDateTime createdAt;
     private UUID ownerId;
     private String ownerName;
-    private int memberCount;
 }

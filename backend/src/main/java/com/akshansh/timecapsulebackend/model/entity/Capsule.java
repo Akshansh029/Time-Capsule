@@ -14,6 +14,7 @@ import java.util.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "capsules")
 public class Capsule {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

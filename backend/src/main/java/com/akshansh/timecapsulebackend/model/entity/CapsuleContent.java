@@ -15,6 +15,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "capsule_contents")
 public class CapsuleContent {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

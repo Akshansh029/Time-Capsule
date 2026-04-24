@@ -13,6 +13,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "capsule_members")
 public class CapsuleMember {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

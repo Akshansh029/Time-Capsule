@@ -17,7 +17,7 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
     // Find All Capsules for a user
     @Query("""
         SELECT new com.akshansh.timecapsulebackend.model.dto.CapsuleDto(
-        c.id, c.title, c.description, c.status, c.unlockDate, c.isPrivate, c.createdAt, c.owner.id, c.owner.name, size(c.members)) FROM Capsule c
+        c.id, c.title, c.description, c.status, c.unlockDate, c.isPrivate, c.createdAt, c.owner.id, c.owner.name) FROM Capsule c
         WHERE c.owner.id = :userId
     """)
     Page<CapsuleDto> findAllCapsules(Pageable pageable, UUID userId);
@@ -25,7 +25,7 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
     // Find All Capsules for a user with search
     @Query("""
         SELECT new com.akshansh.timecapsulebackend.model.dto.CapsuleDto(
-        c.id, c.title, c.description, c.status, c.unlockDate, c.isPrivate, c.createdAt, c.owner.id, c.owner.name, size(c.members)) FROM Capsule c
+        c.id, c.title, c.description, c.status, c.unlockDate, c.isPrivate, c.createdAt, c.owner.id, c.owner.name) FROM Capsule c
         WHERE c.owner.id = :userId
         AND (c.title ILIKE CONCAT('%', :search, '%')
         OR c.description ILIKE CONCAT('%', :search, '%'))

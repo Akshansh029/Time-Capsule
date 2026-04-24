@@ -2,6 +2,7 @@ package com.akshansh.timecapsulebackend.service;
 
 import com.akshansh.timecapsulebackend.exception.CapsuleAlreadyUnlockedException;
 import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
+import com.akshansh.timecapsulebackend.exception.UnlockDatePassedException;
 import com.akshansh.timecapsulebackend.mapper.CapsuleMapper;
 import com.akshansh.timecapsulebackend.model.dto.*;
 import com.akshansh.timecapsulebackend.model.entity.*;
@@ -55,6 +56,10 @@ public class CapsuleService {
     @Transactional
     public CapsuleDto createCapsule(CreateCapsuleRequest request){
         UUID currentUserId = getCurrentUser().getUserId();
+
+        if(request.getUnlockDate().isBefore(LocalDateTime.now())){
+            throw new UnlockDatePassedException("Invalid unlock date");
+        }
 
         User currentUser = userRepo.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

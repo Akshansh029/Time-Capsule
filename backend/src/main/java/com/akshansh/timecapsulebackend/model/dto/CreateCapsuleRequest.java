@@ -22,9 +22,6 @@ public class CreateCapsuleRequest {
     @Size(max = 100, message = "Description can be maximum of 1000 characters")
     private String description;
 
-    @NotNull(message = "Capsule status cannot be null")
-    private CapsuleStatus status;
-
     @NotNull(message = "Unlock date cannot be null")
     private LocalDateTime unlockDate;
 
