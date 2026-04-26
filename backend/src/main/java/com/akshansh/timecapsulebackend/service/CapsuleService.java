@@ -133,8 +133,8 @@ public class CapsuleService {
         if (Objects.nonNull(request.getUnlockDate())) {
             capsule.setUnlockDate(request.getUnlockDate());
         }
-        if (Objects.nonNull(request.isPrivate())) {
-            capsule.setPrivate(request.isPrivate());
+        if (Objects.nonNull(request.getIsPrivate())) {
+            capsule.setPrivate(request.getIsPrivate());
         }
 
         // Save the updated capsule

@@ -18,5 +18,5 @@ public class UpdateCapsuleRequest {
 
     private LocalDateTime unlockDate;
 
-    private boolean isPrivate;
+    private Boolean isPrivate;
 }

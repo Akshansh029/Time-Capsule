@@ -20,7 +20,7 @@ public class CapsuleDto {
     private String title;
     private CapsuleStatus status;
     private LocalDateTime unlockDate;
-    private boolean isPrivate;
+    private Boolean isPrivate;
     private LocalDateTime createdAt;
     private UUID ownerId;
     private String ownerName;

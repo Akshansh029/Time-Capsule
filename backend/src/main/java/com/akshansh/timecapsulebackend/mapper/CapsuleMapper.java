@@ -70,7 +70,7 @@ public class CapsuleMapper {
         dto.setTitle(capsule.getTitle());
         dto.setStatus(capsule.getStatus());
         dto.setUnlockDate(capsule.getUnlockDate());
-        dto.setPrivate(capsule.isPrivate());
+        dto.setIsPrivate(capsule.isPrivate());
         dto.setCreatedAt(capsule.getCreatedAt());
         dto.setOwnerId(capsule.getOwner().getId());
         dto.setOwnerName(capsule.getOwner().getName());
