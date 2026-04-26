@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,17 +11,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "@/components/DatePicker";
+import TimePicker from "@/components/TimePicker";
 import {
   Shield,
   Lock,
   Globe,
-  Calendar,
   Sparkles,
   ArrowLeft,
   Loader2,
-  Clock,
+  Clock as ClockIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -46,6 +44,7 @@ type CreateCapsuleFormValues = z.infer<typeof createCapsuleSchema>;
 const CreateCapsulePage = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedTime, setSelectedTime] = useState("12:00");
 
   const {
     register,
@@ -60,10 +59,26 @@ const CreateCapsulePage = () => {
       title: "",
       description: "",
       isPrivate: true,
+      unlockDate: new Date(new Date().setDate(new Date().getDate() + 1)),
     },
   });
 
   const isPrivate = watch("isPrivate");
+  const currentUnlockDate = watch("unlockDate");
+
+  // Sync date and time
+  useEffect(() => {
+    if (currentUnlockDate && selectedTime) {
+      const [hours, minutes] = selectedTime.split(":").map(Number);
+      const newDate = new Date(currentUnlockDate);
+      newDate.setHours(hours || 0, minutes || 0, 0, 0);
+
+      // Only set if different to avoid loops
+      if (newDate.getTime() !== currentUnlockDate.getTime()) {
+        setValue("unlockDate", newDate, { shouldValidate: true });
+      }
+    }
+  }, [selectedTime, currentUnlockDate, setValue]);
 
   const onSubmit = async (data: CreateCapsuleFormValues) => {
     setIsSubmitting(true);
@@ -117,10 +132,8 @@ const CreateCapsulePage = () => {
             className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000"
           >
             <div className="glass-variant p-8 md:p-12 rounded-[2rem] space-y-8 relative overflow-hidden">
-              {/* Decorative background element */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32 rounded-full" />
 
-              {/* Title Input */}
               <div className="space-y-3 relative">
                 <Label
                   htmlFor="title"
@@ -141,7 +154,6 @@ const CreateCapsulePage = () => {
                 )}
               </div>
 
-              {/* Description Textarea */}
               <div className="space-y-3">
                 <Label
                   htmlFor="description"
@@ -162,34 +174,27 @@ const CreateCapsulePage = () => {
                 )}
               </div>
 
-              {/* Date and Privacy Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <Label
-                    htmlFor="unlockDate"
-                    className="text-xs uppercase tracking-widest text-primary/70 font-semibold"
-                  >
-                    Date of Resurrection
+                  <Label className="text-xs uppercase tracking-widest text-primary/70 font-semibold">
+                    Temporal Window
                   </Label>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 pointer-events-none" />
+                  <div className="grid grid-cols-1 sm:grid-cols-[1fr,140px] gap-3">
                     <Controller
                       control={control}
                       name="unlockDate"
                       render={({ field }) => (
                         <DatePicker
-                          id="unlockDate"
-                          selected={field.value}
-                          onChange={(date: Date | null) => field.onChange(date)}
-                          showTimeSelect
-                          dateFormat="MMMM d, yyyy h:mm aa"
-                          placeholderText="Select the hour of awakening..."
-                          minDate={new Date()}
-                          className={`w-full bg-white/5 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all pl-10 h-10 rounded-md text-sm text-foreground outline-none border ${errors.unlockDate ? "border-red-500/50" : ""}`}
-                          calendarClassName="premium-calendar"
-                          popperPlacement="top"
+                          date={field.value}
+                          setDate={field.onChange}
+                          error={!!errors.unlockDate}
                         />
                       )}
+                    />
+                    <TimePicker
+                      value={selectedTime}
+                      onChange={setSelectedTime}
+                      error={!!errors.unlockDate}
                     />
                   </div>
                   {errors.unlockDate && (

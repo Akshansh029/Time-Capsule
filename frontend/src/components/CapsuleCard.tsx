@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge"; // I might need to create this if it doesn't exist
+import { Badge } from "@/components/ui/badge";
 import { Lock, Unlock, Globe, LockKeyhole, Calendar, User } from "lucide-react";
 import { format } from "date-fns";
 
