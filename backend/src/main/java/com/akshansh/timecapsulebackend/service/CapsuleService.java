@@ -64,9 +64,42 @@ public class CapsuleService {
         User currentUser = userRepo.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        // Save new capsule
         Capsule newCapsule = CapsuleMapper.toEntity(request, currentUser);
-
         capsuleRepo.save(newCapsule);
+
+        // Save the contents
+        if(request.getContents() != null && !request.getContents().isEmpty()){
+            List<CapsuleContent> contents = request.getContents().stream()
+                    .map(c -> CapsuleContent.builder()
+                            .capsule(newCapsule)
+                            .type(c.getType())
+                            .body(c.getBody())
+                            .fileUrl(c.getFileUrl())
+                            .addedBy(userRepo.getReferenceById(currentUserId))
+                            .addedAt(LocalDateTime.now())
+                            .build())
+                    .toList();
+            capsuleContentRepo.saveAll(contents);
+        }
+
+        // Save the capsule members
+        if(!request.getIsPrivate() && request.getMembers() != null && !request.getMembers().isEmpty()){
+            for(AddMemberRequestDto m : request.getMembers()){
+                User invitee = userRepo.findByEmail(m.getUserEmail());
+
+                if(invitee == null){
+                    throw new ResourceNotFoundException("Invitee not found: " + m.getUserEmail());
+                }
+
+                capsuleMemberRepo.save(CapsuleMember.builder()
+                        .capsule(newCapsule)
+                        .user(invitee)
+                        .role(m.getRole())
+                        .build());
+            }
+        }
+
         return CapsuleMapper.toDto(newCapsule);
     }
 

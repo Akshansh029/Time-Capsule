@@ -1,5 +1,7 @@
 package com.akshansh.timecapsulebackend.model.dto;
 
+import com.akshansh.timecapsulebackend.model.entity.CapsuleContent;
+import com.akshansh.timecapsulebackend.model.entity.CapsuleMember;
 import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
@@ -10,6 +12,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @Data
 public class CreateCapsuleRequest {
@@ -27,4 +31,9 @@ public class CreateCapsuleRequest {
 
     @NotNull(message = "Public/Private should be specified")
     private Boolean isPrivate;
+
+    @Size(max = 10)
+    private List<AddContentRequestDto> contents;
+
+    private Set<AddMemberRequestDto> members;
 }
