@@ -46,6 +46,7 @@ export function UserComboBox({ onSelect, selectedEmails }: UserComboBoxProps) {
       setLoading(true);
       try {
         const response = await api.get(`/users/search?q=${query}`);
+
         setSuggestions(response.data);
       } catch (error) {
         console.error("Failed to search users:", error);

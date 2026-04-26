@@ -392,7 +392,7 @@ const CreateCapsulePage = () => {
                           {watch(`contents.${index}.type`) === "TEXT" ? (
                             <Textarea
                               placeholder="Record the sacred text..."
-                              className=" border-white/5 bg-slate-700 focus:border-primary/30 min-h-[100px] text-sm"
+                              className=" border-white/5 bg-transparent focus:border-primary/30 min-h-[100px] text-sm"
                               {...register(`contents.${index}.body` as const)}
                             />
                           ) : (

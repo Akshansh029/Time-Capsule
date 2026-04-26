@@ -1,6 +1,7 @@
 package com.akshansh.timecapsulebackend.controller;
 
 import com.akshansh.timecapsulebackend.model.dto.ActiveUserResponse;
+import com.akshansh.timecapsulebackend.model.dto.UserDto;
 import com.akshansh.timecapsulebackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,7 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -34,5 +38,14 @@ public class UserController {
     public ResponseEntity<ActiveUserResponse> getActiveUserDetails(){
         ActiveUserResponse userDetails = userService.getActiveUserDetails();
         return ResponseEntity.status(HttpStatus.OK).body(userDetails);
+    }
+
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDto>> searchUsers(
+            @RequestParam String q
+    ){
+        List<UserDto> searchedUsers = userService.searchUsers(q);
+        return ResponseEntity.status(HttpStatus.OK).body(searchedUsers);
     }
 }
