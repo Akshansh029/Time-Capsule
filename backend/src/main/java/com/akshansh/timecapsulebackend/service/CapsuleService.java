@@ -41,13 +41,31 @@ public class CapsuleService {
                 .existsByCapsuleIdAndUserId(capsuleId, currentUserId);
     }
 
-    private boolean isContributor(UUID capsuleId, UUID currentUserId){
-        return capsuleMemberRepo
-                .existsByCapsuleIdAndUserIdAndRole(capsuleId, currentUserId, MemberRole.CONTRIBUTOR);
-    }
-
     private boolean isContentAuthor(CapsuleContent content, UUID currentUserId){
         return content.getAddedBy().getId().equals(currentUserId);
+    }
+
+    private void validateAccess(Capsule capsule, UUID requesterId) {
+        if (capsule.isPrivate() && !isOwner(capsule, requesterId)) {
+            throw new AccessDeniedException("This capsule is private");
+        }
+
+        if (!capsule.isPrivate() && !isOwner(capsule, requesterId) && !isMember(capsule.getId(), requesterId)) {
+            throw new AccessDeniedException("You are not a member of this capsule");
+        }
+    }
+
+    private void validateContributor(Capsule capsule, UUID requesterId) {
+        boolean isOwner = capsule.getOwner().getId().equals(requesterId);
+        if (isOwner) return; // owner can always write
+
+        CapsuleMember member = capsuleMemberRepo
+                .findByCapsuleIdAndUserId(capsule.getId(), requesterId)
+                .orElseThrow(() -> new AccessDeniedException("Not a member"));
+
+        if (member.getRole() == MemberRole.VIEWER) {
+            throw new AccessDeniedException("Viewers cannot add content");
+        }
     }
 
     @Transactional
@@ -114,19 +132,10 @@ public class CapsuleService {
     public CapsuleDto getCapsuleDetails(String slug) {
         UUID currentUserId = getCurrentUser().getUserId();
 
-//        Capsule capsule = capsuleRepo.findBySlug(slug);
-
-//        if(capsule == null){
-//            throw new ResourceNotFoundException("Capsule not found");
-//        }
-
         Capsule capsule = capsuleRepo.findBySlugWithMembersAndUsers(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
 
-        // Private capsules are only visible to owner + members
-        if (capsule.isPrivate() && !isOwner(capsule, currentUserId) && !isMember(capsule.getId(), currentUserId)) {
-            throw new AccessDeniedException("You do not have access to this capsule");
-        }
+        validateAccess(capsule, currentUserId);
 
         // Return based on status
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
@@ -206,14 +215,12 @@ public class CapsuleService {
             throw new ResourceNotFoundException("Capsule not found");
         }
 
+        validateAccess(capsule, currentUserId);
+        validateContributor(capsule, currentUserId);
+
         // Can't add content to an already unlocked capsule
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
             throw new IllegalStateException("Cannot add content to an unlocked capsule");
-        }
-
-        // Only owner or contributors can add content
-        if (!isOwner(capsule, currentUserId) && !isContributor(capsule.getId(), currentUserId)) {
-            throw new AccessDeniedException("You do not have permission to add content");
         }
 
         List<CapsuleContent> contents = new ArrayList<>();
@@ -246,6 +253,9 @@ public class CapsuleService {
             throw new ResourceNotFoundException("Capsule not found");
         }
 
+        validateAccess(capsule, currentUserId);
+        validateContributor(capsule, currentUserId);
+
         CapsuleContent content = capsuleContentRepo.findById(contentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Content not found"));
 
@@ -267,11 +277,15 @@ public class CapsuleService {
     }
 
     public Page<CapsuleContentDto> getAllContentsForCapsule(String slug, int pageNo, int pageSize){
+        UUID currentUserId = getCurrentUser().getUserId();
+
         Capsule capsule = capsuleRepo.findBySlug(slug);
 
         if(capsule == null){
             throw new ResourceNotFoundException("Capsule not found");
         }
+
+        validateAccess(capsule, currentUserId);
 
         if (capsule.getStatus() == CapsuleStatus.LOCKED) {
             throw new CapsuleAlreadyUnlockedException("Capsule is locked");

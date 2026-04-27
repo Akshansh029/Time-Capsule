@@ -49,13 +49,11 @@ const CapsuleDetailsPage = () => {
     try {
       setIsLoading(true);
       const response = await api.get(`/capsules/${slug}`);
-      console.log("Response: ", response.data);
 
       setCapsule(response.data);
       setError(null);
     } catch (err: any) {
       console.error("Failed to fetch capsule:", err);
-      console.log("Error: ", err.response);
 
       setError(
         err.response?.data?.message || "Failed to retrieve the artifact.",

@@ -55,6 +55,7 @@ public class CapsuleMapper {
                         .build())
                 .toList());
 
+        dto.setDescription(capsule.getDescription());
         dto.setDaysUntilUnlock(
                 ChronoUnit.DAYS.between(LocalDateTime.now(), capsule.getUnlockDate())
         );

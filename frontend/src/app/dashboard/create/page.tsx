@@ -89,7 +89,7 @@ const CreateCapsulePage = () => {
     defaultValues: {
       title: "",
       description: "",
-      isPrivate: true,
+      isPrivate: false,
       unlockDate: new Date(new Date().setDate(new Date().getDate() + 1)),
       contents: [],
       members: [],
