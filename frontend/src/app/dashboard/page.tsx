@@ -35,14 +35,22 @@ const DashboardPage = () => {
   const fetchCapsules = async () => {
     setLoading(true);
     try {
-      const response = await api.get<PagedResponse<CapsuleDto>>("/capsules", {
+      const endpoint =
+        activeTab === "shared" ? "/capsules/shared" : "/capsules";
+      const response = await api.get<PagedResponse<CapsuleDto>>(endpoint, {
         params: {
           page: page,
           size: pageSize,
           search: search || undefined,
         },
       });
-      setCapsules(response.data.content);
+
+      let fetchedCapsules = response.data.content;
+      if (activeTab === "public") {
+        fetchedCapsules = fetchedCapsules.filter((c) => !c.isPrivate);
+      }
+
+      setCapsules(fetchedCapsules);
       setTotalPages(response.data.totalPages);
       setTotalElements(response.data.totalElements);
     } catch (error) {
@@ -67,7 +75,6 @@ const DashboardPage = () => {
     { id: "my", label: "My Capsules", icon: LayoutDashboard },
     { id: "shared", label: "Shared with me", icon: Users },
     { id: "public", label: "Public Vaults", icon: Globe },
-    { id: "archives", label: "Archived", icon: Archive },
     { id: "settings", label: "Sanctum Settings", icon: SettingsIcon },
   ];
 
