@@ -4,32 +4,41 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
 import {
-  LockedCapsuleDto,
   UnlockedCapsuleDto,
   CapsuleContentDto,
-  CapsuleMemberDto,
+  UpdateCapsuleRequest,
 } from "@/types/capsule";
 import { Navbar } from "@/components/Navbar";
 import CapsuleCountdown from "@/components/CapsuleCountdown";
+import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ArrowLeft,
-  Lock,
-  Unlock,
   Clock,
   Shield,
   Calendar,
   User,
   Sparkles,
   Loader2,
-  Globe,
   LockKeyhole,
-  FileText,
   Info,
   Type,
   Image as ImageIcon,
   File as FileIcon,
   Download,
   Users,
+  Edit2,
+  Plus,
+  X,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -39,10 +48,29 @@ import { Label } from "@/components/ui/label";
 const CapsuleDetailsPage = () => {
   const params = useParams();
   const slug = params.slug as string;
+  const user = useAuthStore((state) => state.user);
 
   const [capsule, setCapsule] = useState<UnlockedCapsuleDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editData, setEditData] = useState({
+    title: "",
+    description: "",
+    unlockDate: "",
+  });
+
+  const [isAddContentOpen, setIsAddContentOpen] = useState(false);
+  const [newContent, setNewContent] = useState<{
+    type: "TEXT" | "IMAGE" | "FILE";
+    body: string;
+    fileUrl: string;
+  }>({ type: "TEXT", body: "", fileUrl: "" });
+
+  const isOwner = user?.id === capsule?.ownerId;
+  const isContributor =
+    isOwner || capsule?.capsuleMembers?.some((m) => m.email === user?.email);
 
   const fetchCapsule = async () => {
     try {
@@ -57,6 +85,59 @@ const CapsuleDetailsPage = () => {
       setError(
         err.response?.data?.message || "Failed to retrieve the artifact.",
       );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const openEditModal = () => {
+    setEditData({
+      title: capsule?.title || "",
+      description: capsule?.description || "",
+      unlockDate: capsule?.unlockDate?.length
+        ? capsule.unlockDate.slice(0, 16)
+        : "",
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleUpdate = async () => {
+    try {
+      setIsLoading(true);
+      const payload: UpdateCapsuleRequest = {
+        title: editData.title,
+        description: editData.description,
+        unlockDate: `${editData.unlockDate}:00`, // pad seconds
+      };
+
+      await api.put(`/capsules/${slug}`, payload);
+      toast.success("Artifact updated successfully.");
+      setIsEditOpen(false);
+      fetchCapsule();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update artifact.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddContent = async () => {
+    try {
+      setIsLoading(true);
+      const payload = [
+        {
+          type: newContent.type,
+          body: newContent.type === "TEXT" ? newContent.body : undefined,
+          fileUrl: newContent.type !== "TEXT" ? newContent.fileUrl : undefined,
+        },
+      ];
+      await api.post(`/capsules/${slug}/contents`, payload);
+      toast.success("Content interred successfully.");
+      setIsAddContentOpen(false);
+      setNewContent({ type: "TEXT", body: "", fileUrl: "" });
+      fetchCapsule();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to add content.");
     } finally {
       setIsLoading(false);
     }
@@ -235,9 +316,21 @@ const CapsuleDetailsPage = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] -mr-16 -mt-16 rounded-full" />
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase tracking-widest text-primary/50 font-bold">
-                    Artifact Identifier
-                  </Label>
+                  <div className="flex justify-between items-start">
+                    <Label className="text-[10px] uppercase tracking-widest text-primary/50 font-bold">
+                      Artifact Identifier
+                    </Label>
+                    {isOwner && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={openEditModal}
+                        className="w-6 h-6 text-muted-foreground hover:text-primary"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
                   <h2 className="text-2xl font-serif text-foreground truncate">
                     {capsule.title}
                   </h2>
@@ -386,6 +479,16 @@ const CapsuleDetailsPage = () => {
                     </p>
                   </div>
                 </div>
+
+                {isContributor && (
+                  <Button
+                    onClick={() => setIsAddContentOpen(true)}
+                    className="w-full gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs h-12 rounded-2xl shadow-xl hover:scale-105 transition-transform"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Inject Artifact
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -398,12 +501,24 @@ const CapsuleDetailsPage = () => {
                   <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32 rounded-full" />
 
                   <div className="relative space-y-8">
-                    <div className="flex items-center space-x-4 opacity-50">
-                      <div className="h-px w-8 bg-gradient-to-r from-transparent to-primary" />
-                      <span className="text-[9px] uppercase tracking-[0.3em] font-bold text-primary">
-                        Original Manifest
-                      </span>
-                      <div className="h-px w-8 bg-gradient-to-l from-transparent to-primary" />
+                    <div className="flex items-center justify-between opacity-50 relative z-10">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-px w-8 bg-gradient-to-r from-transparent to-primary" />
+                        <span className="text-[9px] uppercase tracking-[0.3em] font-bold text-primary">
+                          Original Manifest
+                        </span>
+                        <div className="h-px w-8 bg-gradient-to-l from-transparent to-primary" />
+                      </div>
+                      {isOwner && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={openEditModal}
+                          className="w-6 h-6 hover:text-primary transition-colors"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      )}
                     </div>
 
                     <div className="prose prose-invert max-w-none">
@@ -424,9 +539,11 @@ const CapsuleDetailsPage = () => {
                         Decrypted Artifacts
                       </p>
                     </div>
-                    <Badge className="bg-primary/10 text-primary border-primary/20 h-6 text-[9px]">
-                      {capsule.contents?.length || 0} TOTAL
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-primary/10 text-primary border-primary/20 h-6 text-[9px]">
+                        {capsule.contents?.length || 0} TOTAL
+                      </Badge>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-6">
@@ -551,6 +668,144 @@ const CapsuleDetailsPage = () => {
           </div>
         )}
       </main>
+
+      {/* Modals */}
+      {isEditOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#131313] border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+            <button
+              onClick={() => setIsEditOpen(false)}
+              className="absolute top-6 right-6 text-muted-foreground hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="font-serif text-2xl mb-6">Modify Artifact</h2>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-primary/70">
+                  Title
+                </Label>
+                <Input
+                  value={editData.title}
+                  onChange={(e) =>
+                    setEditData({ ...editData, title: e.target.value })
+                  }
+                  className="bg-white/5 border-white/10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-primary/70">
+                  Description
+                </Label>
+                <Textarea
+                  value={editData.description}
+                  onChange={(e) =>
+                    setEditData({ ...editData, description: e.target.value })
+                  }
+                  className="bg-white/5 border-white/10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-primary/70">
+                  Unlock Date
+                </Label>
+                <Input
+                  type="datetime-local"
+                  value={editData.unlockDate}
+                  onChange={(e) =>
+                    setEditData({ ...editData, unlockDate: e.target.value })
+                  }
+                  className="bg-white/5 border-white/10 [color-scheme:dark]"
+                />
+              </div>
+              <Button
+                onClick={handleUpdate}
+                className="w-full gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs h-12 rounded-xl mt-4 hover:scale-105 transition-transform"
+                disabled={isLoading}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isAddContentOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#131313] border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+            <button
+              onClick={() => setIsAddContentOpen(false)}
+              className="absolute top-6 right-6 text-muted-foreground hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="font-serif text-2xl mb-6">Inject Artifact</h2>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-primary/70">
+                  Type
+                </Label>
+                <Select
+                  value={newContent.type}
+                  onValueChange={(val: "TEXT" | "IMAGE" | "FILE") =>
+                    setNewContent({
+                      ...newContent,
+                      type: val,
+                      body: "",
+                      fileUrl: "",
+                    })
+                  }
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TEXT">TEXT</SelectItem>
+                    <SelectItem value="IMAGE">IMAGE</SelectItem>
+                    <SelectItem value="FILE">FILE</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {newContent.type === "TEXT" ? (
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase tracking-widest text-primary/70">
+                    Body
+                  </Label>
+                  <Textarea
+                    value={newContent.body}
+                    onChange={(e) =>
+                      setNewContent({ ...newContent, body: e.target.value })
+                    }
+                    className="bg-white/5 border-white/10"
+                    placeholder="Record the sacred text..."
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase tracking-widest text-primary/70">
+                    URL
+                  </Label>
+                  <Input
+                    value={newContent.fileUrl}
+                    onChange={(e) =>
+                      setNewContent({ ...newContent, fileUrl: e.target.value })
+                    }
+                    placeholder="https://..."
+                    className="bg-white/5 border-white/10"
+                  />
+                </div>
+              )}
+
+              <Button
+                onClick={handleAddContent}
+                className="w-full gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs h-12 rounded-xl mt-4 hover:scale-105 transition-transform"
+              >
+                Add Content
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Ambiance */}
       <div className="fixed inset-0 pointer-events-none -z-10 bg-[radial-gradient(circle_at_center,transparent_0%,#000_100%)]" />

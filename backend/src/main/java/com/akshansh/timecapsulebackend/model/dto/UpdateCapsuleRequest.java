@@ -14,7 +14,5 @@ public class UpdateCapsuleRequest {
     @Size(max = 100, message = "Description can be maximum of 1000 characters")
     private String description;
 
-    private CapsuleStatus status;
-
     private LocalDateTime unlockDate;
 }

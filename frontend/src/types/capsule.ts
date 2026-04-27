@@ -45,6 +45,12 @@ export interface CreateCapsuleRequest {
   members: AddMemberRequestDto[];
 }
 
+export interface UpdateCapsuleRequest {
+  title?: string;
+  description?: string;
+  unlockDate?: string;
+}
+
 export interface LockedCapsuleDto extends CapsuleDto {
   description: string;
   daysUntilUnlock: number;

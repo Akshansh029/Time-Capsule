@@ -187,9 +187,6 @@ public class CapsuleService {
         if (Objects.nonNull(request.getDescription()) && !"".equalsIgnoreCase(request.getDescription())) {
             capsule.setDescription(request.getDescription());
         }
-        if (Objects.nonNull(request.getStatus())) {
-            capsule.setStatus(request.getStatus());
-        }
         if (Objects.nonNull(request.getUnlockDate())) {
             capsule.setUnlockDate(request.getUnlockDate());
         }
