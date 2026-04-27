@@ -61,7 +61,7 @@ public class Capsule {
     private User owner;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "capsule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "capsule", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<CapsuleContent> contents = new ArrayList<>();
 
