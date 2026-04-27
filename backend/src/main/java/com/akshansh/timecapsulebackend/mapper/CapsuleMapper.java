@@ -1,14 +1,13 @@
 package com.akshansh.timecapsulebackend.mapper;
 
 import com.akshansh.timecapsulebackend.model.dto.*;
-import com.akshansh.timecapsulebackend.model.entity.Capsule;
-import com.akshansh.timecapsulebackend.model.entity.CapsuleContent;
-import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
-import com.akshansh.timecapsulebackend.model.entity.User;
+import com.akshansh.timecapsulebackend.model.entity.*;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.akshansh.timecapsulebackend.util.SlugUtil.generateSlug;
 
@@ -45,13 +44,17 @@ public class CapsuleMapper {
     public static LockedCapsuleDto toLockedCapsuleDto(Capsule capsule) {
         LockedCapsuleDto dto = LockedCapsuleDto.builder().build();
         mapBase(capsule, dto);
-        dto.setCapsuleMembers(capsule.getMembers().stream()
+
+        List<CapsuleMember> membersCopy = new ArrayList<>(capsule.getMembers());
+
+        dto.setCapsuleMembers(membersCopy.stream()
                 .map(m -> CapsuleMemberDto.builder()
+                        .id(m.getUser().getId())
                         .name(m.getUser().getName())
                         .email(m.getUser().getEmail())
                         .build())
                 .toList());
-        dto.setDescription(capsule.getDescription());
+
         dto.setDaysUntilUnlock(
                 ChronoUnit.DAYS.between(LocalDateTime.now(), capsule.getUnlockDate())
         );
@@ -62,8 +65,12 @@ public class CapsuleMapper {
         UnlockedCapsuleDto dto = UnlockedCapsuleDto.builder().build();
         mapBase(capsule, dto);
         dto.setDescription(capsule.getDescription());
-        dto.setCapsuleMembers(capsule.getMembers().stream()
+
+        List<CapsuleMember> membersCopy = new ArrayList<>(capsule.getMembers());
+
+        dto.setCapsuleMembers(membersCopy.stream()
                 .map(m -> CapsuleMemberDto.builder()
+                        .id(m.getUser().getId())
                         .name(m.getUser().getName())
                         .email(m.getUser().getEmail())
                         .build())

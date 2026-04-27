@@ -48,6 +48,7 @@ export interface CreateCapsuleRequest {
 export interface LockedCapsuleDto extends CapsuleDto {
   description: string;
   daysUntilUnlock: number;
+  capsuleMembers?: CapsuleMemberDto[];
 }
 
 export interface CapsuleContentDto {
@@ -60,13 +61,10 @@ export interface CapsuleContentDto {
 
 export interface CapsuleMemberDto {
   id: string;
-  userEmail: string;
-  userName: string;
-  role: MemberRole;
-  joinedAt: string;
+  email: string;
+  name: string;
 }
 
 export interface UnlockedCapsuleDto extends LockedCapsuleDto {
   contents: CapsuleContentDto[];
-  members: CapsuleMemberDto[];
 }

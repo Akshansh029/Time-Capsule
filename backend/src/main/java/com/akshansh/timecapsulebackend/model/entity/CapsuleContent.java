@@ -1,11 +1,9 @@
 package com.akshansh.timecapsulebackend.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.ColumnTransformer;
 
 import java.time.LocalDateTime;
@@ -13,17 +11,23 @@ import java.util.UUID;
 
 @Entity
 @Builder
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
 @Table(name = "capsule_contents")
 public class CapsuleContent {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @EqualsAndHashCode.Include
     private UUID id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "capsule_id", nullable = false)
+    @ToString.Exclude
     private Capsule capsule;
 
     @NotNull(message = "Content type is required")
@@ -38,8 +42,10 @@ public class CapsuleContent {
     @Column(name = "file_url", nullable = true)
     private String fileUrl;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
     private User addedBy;
 
     @Column(name = "added_at", nullable = false)

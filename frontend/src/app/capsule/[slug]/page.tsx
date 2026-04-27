@@ -49,10 +49,14 @@ const CapsuleDetailsPage = () => {
     try {
       setIsLoading(true);
       const response = await api.get(`/capsules/${slug}`);
+      console.log("Response: ", response.data);
+
       setCapsule(response.data);
       setError(null);
     } catch (err: any) {
       console.error("Failed to fetch capsule:", err);
+      console.log("Error: ", err.response);
+
       setError(
         err.response?.data?.message || "Failed to retrieve the artifact.",
       );
@@ -251,27 +255,71 @@ const CapsuleDetailsPage = () => {
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary/60" />
+                <div className="pt-4 border-t border-white/5 flex flex-col space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                        <User className="w-4 h-4 text-primary/60" />
+                      </div>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                          Creator
+                        </p>
+                        <p className="text-xs font-medium">
+                          {capsule.ownerName}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">
-                        Custodian
-                      </p>
-                      <p className="text-xs font-medium">{capsule.ownerName}</p>
-                    </div>
+                    <Badge
+                      className={
+                        capsule.isPrivate
+                          ? "bg-red-500/10 text-red-400 border-red-500/20"
+                          : "bg-primary/10 text-primary border-primary/20"
+                      }
+                    >
+                      {capsule.isPrivate ? "PRIVATE" : "PUBLIC"}
+                    </Badge>
                   </div>
-                  <Badge
-                    className={
-                      capsule.isPrivate
-                        ? "bg-red-500/10 text-red-400 border-red-500/20"
-                        : "bg-primary/10 text-primary border-primary/20"
-                    }
-                  >
-                    {capsule.isPrivate ? "PRIVATE" : "PUBLIC"}
-                  </Badge>
+
+                  {capsule.capsuleMembers &&
+                    capsule.capsuleMembers.length > 0 && (
+                      <div className="pt-4 border-t border-white/5">
+                        <div className="flex items-center space-x-3 text-primary/80 mb-4">
+                          <Users className="w-4 h-4" />
+                          <span className="text-[10px] uppercase tracking-widest font-bold">
+                            Custodian Network
+                          </span>
+                        </div>
+                        <div className="space-y-4">
+                          {capsule.capsuleMembers.map((member) => (
+                            <div
+                              key={member.id}
+                              className="flex items-center justify-between group"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary/60 border border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
+                                  <User className="w-3 h-3" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-semibold text-foreground truncate">
+                                    {member.name || member.email.split("@")[0]}
+                                  </p>
+                                  <p className="text-[8px] text-muted-foreground truncate uppercase tracking-tighter">
+                                    {member.email}
+                                  </p>
+                                </div>
+                              </div>
+                              {/* <Badge
+                                variant="outline"
+                                className="text-[7px] h-5 border-white/10 text-muted-foreground group-hover:border-primary/30 group-hover:text-primary transition-colors uppercase"
+                              >
+                                {member.role}
+                              </Badge> */}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                 </div>
               </div>
 
@@ -414,7 +462,7 @@ const CapsuleDetailsPage = () => {
                   </div>
 
                   <div className="space-y-4">
-                    {capsule.members?.map((member) => (
+                    {capsule.capsuleMembers?.map((member) => (
                       <div
                         key={member.id}
                         className="flex items-center justify-between group"
@@ -425,20 +473,19 @@ const CapsuleDetailsPage = () => {
                           </div>
                           <div>
                             <p className="text-xs font-semibold">
-                              {member.userName ||
-                                member.userEmail.split("@")[0]}
+                              {member.name || member.email.split("@")[0]}
                             </p>
                             <p className="text-[8px] text-muted-foreground uppercase tracking-tighter">
-                              {member.userEmail}
+                              {member.email}
                             </p>
                           </div>
                         </div>
-                        <Badge
+                        {/* <Badge
                           variant="outline"
                           className="text-[7px] h-5 border-white/10 text-muted-foreground group-hover:border-primary/30 group-hover:text-primary transition-colors"
                         >
                           {member.role}
-                        </Badge>
+                        </Badge> */}
                       </div>
                     ))}
 

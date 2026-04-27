@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static com.akshansh.timecapsulebackend.util.UserUtil.getCurrentUser;
 
@@ -117,18 +114,21 @@ public class CapsuleService {
     public CapsuleDto getCapsuleDetails(String slug) {
         UUID currentUserId = getCurrentUser().getUserId();
 
-        Capsule capsule = capsuleRepo.findBySlug(slug);
+//        Capsule capsule = capsuleRepo.findBySlug(slug);
 
-        if(capsule == null){
-            throw new ResourceNotFoundException("Capsule not found");
-        }
+//        if(capsule == null){
+//            throw new ResourceNotFoundException("Capsule not found");
+//        }
+
+        Capsule capsule = capsuleRepo.findBySlugWithMembersAndUsers(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
 
         // Private capsules are only visible to owner + members
         if (capsule.isPrivate() && !isOwner(capsule, currentUserId) && !isMember(capsule.getId(), currentUserId)) {
             throw new AccessDeniedException("You do not have access to this capsule");
         }
 
-        // Return based on status (not unlock date)
+        // Return based on status
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
             return CapsuleMapper.toUnlockedCapsuleDto(capsule);
         }

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -39,4 +40,12 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
     Capsule findBySlug(String slug);
 
     void deleteBySlug(String slug);
+
+    @Query("""
+    SELECT c FROM Capsule c
+    LEFT JOIN FETCH c.members m
+    LEFT JOIN FETCH m.user
+    WHERE c.slug = :slug
+""")
+    Optional<Capsule> findBySlugWithMembersAndUsers(@Param("slug") String slug);
 }
