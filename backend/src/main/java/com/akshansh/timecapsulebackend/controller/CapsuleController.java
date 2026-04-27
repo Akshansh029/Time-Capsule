@@ -61,6 +61,11 @@ public class CapsuleController {
         return ResponseEntity.status(HttpStatus.OK).body(capsules);
     }
 
+    @Operation(summary = "Get all capsules for shared with the current user", description = "Fetch and return all capsules of which the current user is a member")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Capsules retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = Page.class)))
+    })
     @GetMapping("/shared")
     public ResponseEntity<Page<CapsuleDto>> getSharedCapsulesForUser(
             @RequestParam(defaultValue = "0", required = false) int pageNo,
