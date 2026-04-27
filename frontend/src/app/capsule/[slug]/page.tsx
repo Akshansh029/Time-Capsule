@@ -38,7 +38,6 @@ import { Label } from "@/components/ui/label";
 
 const CapsuleDetailsPage = () => {
   const params = useParams();
-  const router = useRouter();
   const slug = params.slug as string;
 
   const [capsule, setCapsule] = useState<UnlockedCapsuleDto | null>(null);

@@ -424,114 +424,118 @@ const CreateCapsulePage = () => {
               </div>
 
               {/* MEMBERS SECTION */}
-              <div className="space-y-6 pt-8 border-t border-white/5 relative z-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-xs uppercase tracking-widest text-primary/70 font-semibold">
-                      Custodian Network
-                    </Label>
-                    <p className="text-[9px] text-muted-foreground uppercase tracking-widest italic">
-                      WHO ELSE CAN WITNESS THE RESURRECTION?
-                    </p>
-                  </div>
-                  <div className="w-full md:w-80">
-                    <UserComboBox
-                      selectedEmails={memberFields.map((m) =>
-                        watch(`members.${memberFields.indexOf(m)}.userEmail`),
-                      )}
-                      onSelect={(user) => {
-                        appendMember({
-                          userEmail: user.email,
-                          userName: user.name,
-                          role: "VIEWER",
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {memberFields.map((field, index) => (
-                    <div
-                      key={field.id}
-                      className="p-4 rounded-xl bg-white/5 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-left-4 duration-500 hover:bg-white/[0.08] transition-colors"
-                    >
-                      <div className="flex items-center space-x-4 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <UserPlus className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-foreground truncate">
-                            {watch(`members.${index}.userName`) ||
-                              watch(`members.${index}.userEmail`).split("@")[0]}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-tight truncate">
-                            {watch(`members.${index}.userEmail`)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <Controller
-                          control={control}
-                          name={`members.${index}.role` as const}
-                          render={({ field }) => (
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <SelectTrigger className="h-10 w-32 rounded-xl bg-white/5 border-white/10 text-[10px] uppercase tracking-widest font-bold">
-                                <SelectValue placeholder="Role" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem
-                                  value="VIEWER"
-                                  className="text-[10px] uppercase tracking-widest font-bold"
-                                >
-                                  Viewer
-                                </SelectItem>
-                                <SelectItem
-                                  value="CONTRIBUTOR"
-                                  className="text-[10px] uppercase tracking-widest font-bold"
-                                >
-                                  Contributor
-                                </SelectItem>
-                                <SelectItem
-                                  value="ADMIN"
-                                  className="text-[10px] uppercase tracking-widest font-bold"
-                                >
-                                  Admin
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeMember(index)}
-                          className="h-10 w-10 rounded-xl text-muted-foreground hover:text-red-400 hover:bg-red-400/5 mt-0"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {memberFields.length === 0 && (
-                    <div className="py-8 border border-dashed border-white/10 rounded-3xl text-center">
-                      <p className="text-muted-foreground text-[10px] uppercase tracking-widest">
-                        Sole Custodian: Only you will witness this
-                      </p>
-                      <p className="text-[8px] text-muted-foreground/50 uppercase tracking-[0.2em] mt-1">
-                        Use the search above to invite others
+              {!isPrivate && (
+                <div className="space-y-6 pt-8 border-t border-white/5 relative z-10">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs uppercase tracking-widest text-primary/70 font-semibold">
+                        Custodian Network
+                      </Label>
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest italic">
+                        WHO ELSE CAN WITNESS THE RESURRECTION?
                       </p>
                     </div>
-                  )}
+                    <div className="w-full md:w-80">
+                      <UserComboBox
+                        selectedEmails={memberFields.map((m) =>
+                          watch(`members.${memberFields.indexOf(m)}.userEmail`),
+                        )}
+                        onSelect={(user) => {
+                          appendMember({
+                            userEmail: user.email,
+                            userName: user.name,
+                            role: "VIEWER",
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {memberFields.map((field, index) => (
+                      <div
+                        key={field.id}
+                        className="p-4 rounded-xl bg-white/5 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-left-4 duration-500 hover:bg-white/[0.08] transition-colors"
+                      >
+                        <div className="flex items-center space-x-4 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <UserPlus className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-foreground truncate">
+                              {watch(`members.${index}.userName`) ||
+                                watch(`members.${index}.userEmail`).split(
+                                  "@",
+                                )[0]}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-tight truncate">
+                              {watch(`members.${index}.userEmail`)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <Controller
+                            control={control}
+                            name={`members.${index}.role` as const}
+                            render={({ field }) => (
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <SelectTrigger className="h-10 w-32 rounded-xl bg-white/5 border-white/10 text-[10px] uppercase tracking-widest font-bold">
+                                  <SelectValue placeholder="Role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem
+                                    value="VIEWER"
+                                    className="text-[10px] uppercase tracking-widest font-bold"
+                                  >
+                                    Viewer
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="CONTRIBUTOR"
+                                    className="text-[10px] uppercase tracking-widest font-bold"
+                                  >
+                                    Contributor
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="ADMIN"
+                                    className="text-[10px] uppercase tracking-widest font-bold"
+                                  >
+                                    Admin
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeMember(index)}
+                            className="h-10 w-10 rounded-xl text-muted-foreground hover:text-red-400 hover:bg-red-400/5 mt-0"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {memberFields.length === 0 && (
+                      <div className="py-8 border border-dashed border-white/10 rounded-3xl text-center">
+                        <p className="text-muted-foreground text-[10px] uppercase tracking-widest">
+                          Sole Custodian: Only you will witness this
+                        </p>
+                        <p className="text-[8px] text-muted-foreground/50 uppercase tracking-[0.2em] mt-1">
+                          Use the search above to invite others
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Info Box */}
               <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 flex gap-4 mt-8 relative z-10">
