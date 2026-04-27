@@ -12,6 +12,7 @@ import com.akshansh.timecapsulebackend.repository.CapsuleRepository;
 import com.akshansh.timecapsulebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -127,6 +128,23 @@ public class CapsuleService {
         }
 
         return capsuleRepo.findAllCapsulesWithSearch(pageable, currentUserId, search);
+    }
+
+    public Page<CapsuleDto> getSharedCapsulesForUser(int pageNo, int pageSize, String search){
+        UUID currentUserId = getCurrentUser().getUserId();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+
+        List<CapsuleDto> memberOf = capsuleMemberRepo.findByUserId(currentUserId)
+                .stream()
+                .map(CapsuleMember::getCapsule)
+                .map(CapsuleMapper::toDto)
+                .toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), memberOf.size());
+
+        List<CapsuleDto> pageContent = memberOf.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, memberOf.size());
     }
 
     public CapsuleDto getCapsuleDetails(String slug) {

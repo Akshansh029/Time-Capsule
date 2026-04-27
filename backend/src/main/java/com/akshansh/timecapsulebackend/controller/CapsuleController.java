@@ -61,6 +61,16 @@ public class CapsuleController {
         return ResponseEntity.status(HttpStatus.OK).body(capsules);
     }
 
+    @GetMapping("/shared")
+    public ResponseEntity<Page<CapsuleDto>> getSharedCapsulesForUser(
+            @RequestParam(defaultValue = "0", required = false) int pageNo,
+            @RequestParam(defaultValue = "10", required = false) int pageSize,
+            @RequestParam(required = false) String search
+    ){
+        Page<CapsuleDto> sharedCapsules = capsuleService.getSharedCapsulesForUser(pageNo, pageSize, search);
+        return ResponseEntity.status(HttpStatus.OK).body(sharedCapsules);
+    }
+
     @Operation(summary = "Get capsule by ID", description = "Retrieve a capsule's details by its ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Capsule found",
