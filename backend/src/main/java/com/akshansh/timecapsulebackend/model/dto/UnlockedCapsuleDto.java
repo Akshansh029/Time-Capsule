@@ -18,5 +18,6 @@ import java.util.UUID;
 @SuperBuilder
 public class UnlockedCapsuleDto extends CapsuleDto {
     private String description;
+    private List<CapsuleMemberDto> capsuleMembers;
     private List<CapsuleContentDto> contents;
 }

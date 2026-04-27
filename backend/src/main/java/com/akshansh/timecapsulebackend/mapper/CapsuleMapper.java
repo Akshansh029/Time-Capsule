@@ -45,6 +45,12 @@ public class CapsuleMapper {
     public static LockedCapsuleDto toLockedCapsuleDto(Capsule capsule) {
         LockedCapsuleDto dto = LockedCapsuleDto.builder().build();
         mapBase(capsule, dto);
+        dto.setCapsuleMembers(capsule.getMembers().stream()
+                .map(m -> CapsuleMemberDto.builder()
+                        .name(m.getUser().getName())
+                        .email(m.getUser().getEmail())
+                        .build())
+                .toList());
         dto.setDescription(capsule.getDescription());
         dto.setDaysUntilUnlock(
                 ChronoUnit.DAYS.between(LocalDateTime.now(), capsule.getUnlockDate())
@@ -56,6 +62,12 @@ public class CapsuleMapper {
         UnlockedCapsuleDto dto = UnlockedCapsuleDto.builder().build();
         mapBase(capsule, dto);
         dto.setDescription(capsule.getDescription());
+        dto.setCapsuleMembers(capsule.getMembers().stream()
+                .map(m -> CapsuleMemberDto.builder()
+                        .name(m.getUser().getName())
+                        .email(m.getUser().getEmail())
+                        .build())
+                .toList());
         dto.setContents(
                 capsule.getContents().stream()
                         .map(CapsuleMapper::toContentDto)
