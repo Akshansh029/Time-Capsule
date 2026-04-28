@@ -72,9 +72,9 @@ const CapsuleDetailsPage = () => {
   const isContributor =
     isOwner || capsule?.capsuleMembers?.some((m) => m.email === user?.email);
 
-  const fetchCapsule = async () => {
+  const fetchCapsule = async (isBackground = false) => {
     try {
-      setIsLoading(true);
+      if (!isBackground) setIsLoading(true);
       const response = await api.get(`/capsules/${slug}`);
 
       setCapsule(response.data);
@@ -86,7 +86,7 @@ const CapsuleDetailsPage = () => {
         err.response?.data?.message || "Failed to retrieve the artifact.",
       );
     } finally {
-      setIsLoading(false);
+      if (!isBackground) setIsLoading(false);
     }
   };
 
@@ -305,7 +305,7 @@ const CapsuleDetailsPage = () => {
               <div className="w-full max-w-2xl pt-4">
                 <CapsuleCountdown
                   unlockDate={capsule.unlockDate}
-                  onUnlock={() => fetchCapsule()}
+                  onUnlock={() => fetchCapsule(true)}
                 />
               </div>
             </div>
@@ -594,12 +594,6 @@ const CapsuleDetailsPage = () => {
                             </p>
                           </div>
                         </div>
-                        {/* <Badge
-                          variant="outline"
-                          className="text-[7px] h-5 border-white/10 text-muted-foreground group-hover:border-primary/30 group-hover:text-primary transition-colors"
-                        >
-                          {member.role}
-                        </Badge> */}
                       </div>
                     ))}
 

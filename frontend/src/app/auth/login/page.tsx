@@ -47,8 +47,6 @@ export default function LoginPage() {
     try {
       const response = await api.post("/auth/login", data);
 
-      console.log("Response: ", response);
-
       const { accessToken } = response.data;
 
       // Store token first to allow subsequent requests
