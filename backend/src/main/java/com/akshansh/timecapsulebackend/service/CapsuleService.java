@@ -155,6 +155,12 @@ public class CapsuleService {
 
         validateAccess(capsule, currentUserId);
 
+        if (capsule.getStatus() == CapsuleStatus.LOCKED && 
+            capsule.getUnlockDate().isBefore(LocalDateTime.now())) {
+            capsule.setStatus(CapsuleStatus.UNLOCKED);
+            capsuleRepo.save(capsule);
+        }
+
         // Return based on status
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
             return CapsuleMapper.toUnlockedCapsuleDto(capsule);
