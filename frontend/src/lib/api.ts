@@ -25,8 +25,13 @@ api.interceptors.response.use(
     const data = error.response?.data;
     const status = error.response?.status;
 
-    // Handle 401 and attempt refresh if not already retrying
-    if (status === 401 && !originalRequest._retry) {
+    // Do not intercept 401 for login or refresh requests
+    if (
+      status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/login") &&
+      !originalRequest.url?.includes("/auth/refresh")
+    ) {
       originalRequest._retry = true;
       try {
         const refreshResponse = await axios.post(
@@ -48,9 +53,10 @@ api.interceptors.response.use(
     }
 
     const message = data?.message || "An unexpected error occurred";
-    if (status !== 401) {
+    // Show toast for non-401s, or for 401s if it was an auth endpoint
+    if (status !== 401 || originalRequest.url?.includes("/auth/login")) {
       toast.error(message, {
-        description: data?.error || "Error",
+        description: data?.error || "Authentication failed",
       });
     }
 
