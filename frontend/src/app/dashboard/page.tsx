@@ -17,6 +17,7 @@ import {
   Globe,
   Settings as SettingsIcon,
   LayoutDashboard,
+  LockOpen,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { toast } from "sonner";
@@ -46,8 +47,14 @@ const DashboardPage = () => {
       });
 
       let fetchedCapsules = response.data.content;
-      if (activeTab === "public") {
+      if (activeTab === "my") {
+        fetchedCapsules = fetchedCapsules.filter((c) => c.status === "LOCKED");
+      } else if (activeTab === "public") {
         fetchedCapsules = fetchedCapsules.filter((c) => !c.isPrivate);
+      } else if (activeTab === "unlocked") {
+        fetchedCapsules = fetchedCapsules.filter(
+          (c) => c.status === "UNLOCKED",
+        );
       }
 
       setCapsules(fetchedCapsules);
@@ -75,13 +82,12 @@ const DashboardPage = () => {
     { id: "my", label: "My Capsules", icon: LayoutDashboard },
     { id: "shared", label: "Shared with me", icon: Users },
     { id: "public", label: "Public Vaults", icon: Globe },
-    { id: "settings", label: "Sanctum Settings", icon: SettingsIcon },
+    { id: "unlocked", label: "Unlocked Vaults", icon: LockOpen },
   ];
 
   return (
     <div className="min-h-screen bg-[#131313] text-foreground">
       <Navbar />
-
       <main className="container mx-auto px-6 pt-28 pb-20">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Sidebar - Desktop */}
@@ -246,13 +252,6 @@ const DashboardPage = () => {
           </div>
         </div>
       </main>
-
-      {/* Decorative elements */}
-      <div className="fixed bottom-0 right-0 p-10 pointer-events-none opacity-10">
-        <h2 className="font-serif text-[12vw] leading-none select-none">
-          CHRONOS
-        </h2>
-      </div>
     </div>
   );
 };
