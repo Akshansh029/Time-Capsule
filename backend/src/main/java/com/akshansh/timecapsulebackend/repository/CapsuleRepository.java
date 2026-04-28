@@ -2,6 +2,7 @@ package com.akshansh.timecapsulebackend.repository;
 
 import com.akshansh.timecapsulebackend.model.dto.CapsuleDto;
 import com.akshansh.timecapsulebackend.model.entity.Capsule;
+import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,4 +51,6 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
     WHERE c.slug = :slug
 """)
     Optional<Capsule> findBySlugWithMembersAndUsers(@Param("slug") String slug);
+
+    List<Capsule> findAllByStatusAndUnlockDateBefore(CapsuleStatus status, LocalDateTime unlockDateBefore);
 }
