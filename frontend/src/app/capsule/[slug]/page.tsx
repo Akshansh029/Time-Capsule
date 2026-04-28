@@ -61,6 +61,8 @@ const CapsuleDetailsPage = () => {
     unlockDate: "",
   });
 
+  console.log("Capsule: ", capsule);
+
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
   const [newContent, setNewContent] = useState<{
     type: "TEXT" | "IMAGE" | "FILE";
@@ -320,7 +322,7 @@ const CapsuleDetailsPage = () => {
                     <Label className="text-[10px] uppercase tracking-widest text-primary/50 font-bold">
                       Artifact Identifier
                     </Label>
-                    {isOwner && (
+                    {isOwner && capsule.status === "LOCKED" && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -509,7 +511,7 @@ const CapsuleDetailsPage = () => {
                         </span>
                         <div className="h-px w-8 bg-gradient-to-l from-transparent to-primary" />
                       </div>
-                      {isOwner && (
+                      {isOwner && capsule.status === "LOCKED" && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -645,14 +647,6 @@ const CapsuleDetailsPage = () => {
                     </div>
                   </div>
                 </div>
-
-                <Button
-                  variant="outline"
-                  className="w-full rounded-2xl border-white/10 hover:border-primary/30 hover:bg-primary/5 text-primary h-12 text-[10px] uppercase tracking-[0.2em] font-bold"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Extract Manifest
-                </Button>
               </div>
             </div>
 
