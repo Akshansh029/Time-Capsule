@@ -38,6 +38,7 @@ import {
   Users,
   Edit2,
   Plus,
+  Trash2,
   X,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -47,6 +48,7 @@ import { Label } from "@/components/ui/label";
 
 const CapsuleDetailsPage = () => {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
   const user = useAuthStore((state) => state.user);
 
@@ -55,6 +57,7 @@ const CapsuleDetailsPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editData, setEditData] = useState({
     title: "",
     description: "",
@@ -142,6 +145,20 @@ const CapsuleDetailsPage = () => {
       toast.error(err.response?.data?.message || "Failed to add content.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsLoading(true);
+      await api.delete(`/capsules/${slug}`);
+      toast.success("Artifact destroyed successfully.");
+      router.push("/dashboard");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to destroy artifact.");
+    } finally {
+      setIsLoading(false);
+      setIsDeleteOpen(false);
     }
   };
 
@@ -323,14 +340,24 @@ const CapsuleDetailsPage = () => {
                       Artifact Identifier
                     </Label>
                     {isOwner && capsule.status === "LOCKED" && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={openEditModal}
-                        className="w-6 h-6 text-muted-foreground hover:text-primary"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={openEditModal}
+                          className="w-9 h-9 text-muted-foreground hover:text-primary"
+                        >
+                          <Edit2 className="w-6 h-6" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setIsDeleteOpen(true)}
+                          className="w-9 h-9 text-muted-foreground hover:text-red-500"
+                        >
+                          <Trash2 className="w-6 h-6" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <h2 className="text-2xl font-serif text-foreground truncate">
@@ -512,14 +539,24 @@ const CapsuleDetailsPage = () => {
                         <div className="h-px w-8 bg-gradient-to-l from-transparent to-primary" />
                       </div>
                       {isOwner && capsule.status === "LOCKED" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={openEditModal}
-                          className="w-6 h-6 hover:text-primary transition-colors"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={openEditModal}
+                            className="w-6 h-6 hover:text-primary transition-colors"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setIsDeleteOpen(true)}
+                            className="w-6 h-6 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       )}
                     </div>
 
@@ -789,6 +826,42 @@ const CapsuleDetailsPage = () => {
                 className="w-full gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs h-12 rounded-xl mt-4 hover:scale-105 transition-transform"
               >
                 Add Content
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#131313] border border-red-500/20 rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+            <button
+              onClick={() => setIsDeleteOpen(false)}
+              className="absolute top-6 right-6 text-muted-foreground hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="font-serif text-2xl mb-2 text-red-500">
+              Destroy Artifact?
+            </h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              This action is irreversible. The artifact will be permanently
+              erased from the temporal vault.
+            </p>
+            <div className="flex space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteOpen(false)}
+                className="flex-1 rounded-xl border-white/10 hover:bg-white/5"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDelete}
+                className="flex-1 bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 rounded-xl"
+                disabled={isLoading}
+              >
+                Confirm Destruction
               </Button>
             </div>
           </div>
