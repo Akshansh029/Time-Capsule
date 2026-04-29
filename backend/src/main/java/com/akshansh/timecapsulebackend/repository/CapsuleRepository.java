@@ -53,4 +53,14 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
     Optional<Capsule> findBySlugWithMembersAndUsers(@Param("slug") String slug);
 
     List<Capsule> findAllByStatusAndUnlockDateBefore(CapsuleStatus status, LocalDateTime unlockDateBefore);
+
+    @Query("""
+    SELECT c FROM Capsule c
+    LEFT JOIN FETCH c.owner
+    LEFT JOIN FETCH c.members m
+    LEFT JOIN FETCH m.user
+    WHERE c.status = 'LOCKED'
+    AND c.unlockDate < :now
+""")
+    List<Capsule> findAllDueCapsulesWithDetails(@Param("now") LocalDateTime now);
 }
