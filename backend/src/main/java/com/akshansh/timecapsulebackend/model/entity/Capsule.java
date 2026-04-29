@@ -41,7 +41,9 @@ public class Capsule {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "capsule_status")
-    @ColumnTransformer(write = "?::capsule_status")
+    @ColumnTransformer(
+            read = "status::varchar",
+            write = "?::capsule_status")
     private CapsuleStatus status;
 
     @NotNull(message = "Unlock date cannot be null")
