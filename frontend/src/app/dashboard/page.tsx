@@ -88,7 +88,7 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen bg-[#131313] text-foreground">
       <Navbar />
-      <main className="container mx-auto px-6 pt-28 pb-20">
+      <main className="container mx-auto pt-28 pb-20">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Sidebar - Desktop */}
           <aside className="hidden lg:block w-64 space-y-8">
@@ -153,13 +153,13 @@ const DashboardPage = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <Input
                     placeholder="Search artifacts..."
-                    className="pl-10 w-full md:w-64 bg-white/5 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                    className="h-9 pl-10 w-full md:w-64 bg-white/5 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </form>
                 <Link href="/dashboard/create">
-                  <Button className="gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs px-6 hover:scale-105 transition-transform active:scale-95">
+                  <Button className="gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs px-6 h-9 hover:scale-105 transition-transform active:scale-95">
                     <Plus className="w-4 h-4 mr-2" />
                     Create New
                   </Button>
