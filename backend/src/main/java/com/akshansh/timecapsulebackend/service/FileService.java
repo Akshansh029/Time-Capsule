@@ -44,19 +44,25 @@ public class FileService {
         return key;
     }
 
-    public Object downloadFile(String key) throws FileDownloadException, IOException {
-        try{
+    public byte[] downloadFile(String key) throws FileDownloadException {
+        try {
             if (bucketIsEmpty()) {
                 throw new FileDownloadException("Requested bucket does not exist or is empty");
             }
-            GetObjectRequest request = GetObjectRequest.builder().bucket(bucketName).build();
-            try (ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(request)){
+
+            GetObjectRequest request = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            try (ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(request)) {
                 return s3Object.readAllBytes();
             }
+
         } catch (NoSuchKeyException e) {
-            throw new ResourceNotFoundException("Resource not found with that key name");
+            throw new ResourceNotFoundException("Resource not found with key: " + key);
         } catch (IOException e) {
-            throw new RuntimeException("Download failed", e);
+            throw new FileDownloadException("Download failed: " + e);
         }
     }
 
