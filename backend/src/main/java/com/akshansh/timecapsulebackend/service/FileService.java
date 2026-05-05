@@ -1,26 +1,20 @@
 package com.akshansh.timecapsulebackend.service;
 
 import com.akshansh.timecapsulebackend.exception.FileDownloadException;
+import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.internal.handlers.ObjectMetadataInterceptor;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -51,12 +45,18 @@ public class FileService {
     }
 
     public Object downloadFile(String key) throws FileDownloadException, IOException {
-        if (bucketIsEmpty()) {
-            throw new FileDownloadException("Requested bucket does not exist or is empty");
-        }
-        GetObjectRequest request = GetObjectRequest.builder().bucket(bucketName).build();
-        try (ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(request)){
-            return s3Object.readAllBytes();
+        try{
+            if (bucketIsEmpty()) {
+                throw new FileDownloadException("Requested bucket does not exist or is empty");
+            }
+            GetObjectRequest request = GetObjectRequest.builder().bucket(bucketName).build();
+            try (ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(request)){
+                return s3Object.readAllBytes();
+            }
+        } catch (NoSuchKeyException e) {
+            throw new ResourceNotFoundException("Resource not found with that key name");
+        } catch (IOException e) {
+            throw new RuntimeException("Download failed", e);
         }
     }
 
