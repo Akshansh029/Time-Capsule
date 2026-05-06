@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -87,7 +88,14 @@ public class AuthService {
     public TokenResponse registerAndVerify(RegisterUserRequest request) {
         UserVerification userVerification = verificationRepository.findByEmail(request.getEmail());
 
-        if (userVerification != null && userVerification.getVerificationCode().equals(request.getVerificationCode())) {
+        if (userVerification != null
+                && userVerification.getVerificationCode().equals(request.getVerificationCode())
+                && userVerification.getExpiresAt().isAfter(LocalDateTime.now())
+        ) {
+            // Delete all verification codes for the requested email when verified
+            List<UserVerification> userVerificationList = verificationRepository.findAllByEmail(request.getEmail());
+            verificationRepository.deleteAll(userVerificationList);
+
             User newUser = new User(
                     request.getName(),
                     request.getEmail(),
