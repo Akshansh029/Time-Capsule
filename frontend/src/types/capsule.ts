@@ -62,6 +62,7 @@ export interface CapsuleContentDto {
   type: ContentType;
   body?: string;
   fileUrl?: string;
+  preAssignedUrl?: string;
   createdAt: string;
 }
 

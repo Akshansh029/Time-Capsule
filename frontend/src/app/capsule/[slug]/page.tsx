@@ -58,13 +58,13 @@ const CapsuleDetailsPage = () => {
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [editData, setEditData] = useState({
     title: "",
     description: "",
     unlockDate: "",
   });
-
-  console.log("Capsule: ", capsule);
 
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
   const [newContent, setNewContent] = useState<{
@@ -126,6 +126,66 @@ const CapsuleDetailsPage = () => {
     }
   };
 
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedExtensions = [
+      "pdf",
+      "ppt",
+      "doc",
+      "docx",
+      "txt",
+      "csv",
+      "png",
+      "jpg",
+      "jpeg",
+      "srt",
+    ];
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!extension || !allowedExtensions.includes(extension)) {
+      toast.error("Invalid File", {
+        description:
+          "Allowed extensions are: pdf, ppt, doc, docx, txt, csv, png, jpg, jpeg, srt",
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File Too Large", {
+        description: "Maximum allowed size is 10MB",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await api.post("/files/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const key = response.data;
+      const isImage = ["png", "jpg", "jpeg"].includes(extension);
+      setNewContent((prev) => ({
+        ...prev,
+        type: isImage ? "IMAGE" : "FILE",
+        fileUrl: key,
+      }));
+      toast.success("File uploaded successfully");
+    } catch (error: any) {
+      console.error("Failed to upload file:", error);
+      toast.error("Upload Failed", {
+        description: error.response?.data?.message || "File upload failed.",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleAddContent = async () => {
     try {
       setIsLoading(true);
@@ -170,6 +230,9 @@ const CapsuleDetailsPage = () => {
         params: { key },
         responseType: "blob",
       });
+
+      console.log(response);
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -252,7 +315,7 @@ const CapsuleDetailsPage = () => {
           <div className="rounded-2xl overflow-hidden bg-white/5 border border-white/10 group">
             <div className="relative aspect-video">
               <img
-                src={content.fileUrl}
+                src={content.preAssignedUrl}
                 alt="Archival Imagery"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -830,25 +893,54 @@ const CapsuleDetailsPage = () => {
                   />
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-widest text-primary/70">
-                    URL
-                  </Label>
-                  <Input
-                    value={newContent.fileUrl}
-                    onChange={(e) =>
-                      setNewContent({ ...newContent, fileUrl: e.target.value })
-                    }
-                    placeholder="https://..."
-                    className="bg-white/5 border-white/10"
+                <div className="space-y-4">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept=".pdf,.ppt,.doc,.docx,.txt,.csv,.png,.jpg,.jpeg,.srt"
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full bg-white/5 border-white/10 hover:bg-white/10 h-20 border-dashed border-2 flex flex-col gap-1"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    ) : (
+                      <FileIcon className="w-5 h-5 text-primary/50" />
+                    )}
+                    <span className="text-[10px] uppercase tracking-widest font-bold">
+                      {newContent.fileUrl
+                        ? "File Uploaded"
+                        : "Select local img/file"}
+                    </span>
+                    {newContent.fileUrl && (
+                      <span className="text-[8px] text-muted-foreground truncate max-w-xs">
+                        {newContent.fileUrl}
+                      </span>
+                    )}
+                  </Button>
                 </div>
               )}
 
               <Button
                 onClick={handleAddContent}
-                className="w-full gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs h-12 rounded-xl mt-4 hover:scale-105 transition-transform"
+                disabled={
+                  isUploading ||
+                  (newContent.type === "TEXT" && !newContent.body) ||
+                  (newContent.type !== "TEXT" && !newContent.fileUrl)
+                }
+                className="w-full gold-gradient text-primary-foreground font-bold uppercase tracking-widest text-xs h-12 rounded-xl mt-4 hover:scale-105 transition-transform disabled:opacity-50"
               >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-2" />
+                )}
                 Add Content
               </Button>
             </div>
