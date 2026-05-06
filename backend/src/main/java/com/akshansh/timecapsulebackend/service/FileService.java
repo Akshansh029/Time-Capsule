@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -26,6 +27,7 @@ public class FileService {
 
     private final S3Client s3Client;
 
+    @Transactional
     public String uploadFile(MultipartFile multipartFile) throws IOException {
         String originalFilename = multipartFile.getOriginalFilename() != null
                 ? multipartFile.getOriginalFilename().replace(" ", "_") : "file";
@@ -41,9 +43,11 @@ public class FileService {
         // Without an explicit contentLength, fromInputStream() will throw an error
         s3Client.putObject(request,
                 RequestBody.fromInputStream(multipartFile.getInputStream(), multipartFile.getSize()));
+        log.info("File upload is completed.");
         return key;
     }
 
+    @Transactional
     public byte[] downloadFile(String key) throws FileDownloadException {
         try {
             if (bucketIsEmpty()) {
@@ -56,14 +60,28 @@ public class FileService {
                     .build();
 
             try (ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(request)) {
+                log.info("File downloaded successfully.");
                 return s3Object.readAllBytes();
             }
 
         } catch (NoSuchKeyException e) {
+            log.warn("Resource not found with key: {}", key);
             throw new ResourceNotFoundException("Resource not found with key: " + key);
         } catch (IOException e) {
+            log.warn("Download failed:", e);
             throw new FileDownloadException("Download failed: " + e);
         }
+    }
+
+    @Transactional
+    public void deleteFile(final String keyName) {
+        log.info("Deleting file with name= {}", keyName);
+        final DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(keyName)
+                .build();
+        s3Client.deleteObject(deleteObjectRequest);
+        log.info("File deleted successfully.");
     }
 
     private boolean bucketIsEmpty() {

@@ -59,7 +59,7 @@ public class FileUploadController {
         }
 
         boolean isValidFile = isValidFile(multipartFile);
-        List<String> allowedFileExtensions = new ArrayList<>(Arrays.asList("pdf", "ppt", "doc", "docx", "txt", "epub", "csv", "png", "jpg", "jpeg", "srt"));
+        List<String> allowedFileExtensions = new ArrayList<>(Arrays.asList("pdf", "ppt", "doc", "docx", "txt", "csv", "png", "jpg", "jpeg", "srt"));
 
         if (isValidFile && allowedFileExtensions.contains(FilenameUtils.getExtension(multipartFile.getOriginalFilename()))){
             String fileName = fileService.uploadFile(multipartFile);
@@ -99,11 +99,18 @@ public class FileUploadController {
         }
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteFile(@RequestParam @NotNull @NotBlank String key) {
+        fileService.deleteFile(key);
+        final String response = "[" + key + "] deleted successfully.";
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     private boolean isValidFile(MultipartFile multipartFile){
         log.info("Empty Status ==> {}", multipartFile.isEmpty());
         if (Objects.isNull(multipartFile.getOriginalFilename())){
             return false;
         }
-        return !multipartFile.getOriginalFilename().trim().equals("");
+        return !multipartFile.getOriginalFilename().trim().isEmpty();
     }
 }
