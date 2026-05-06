@@ -13,6 +13,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,30 +32,22 @@ public class AuthController {
     private final AuthService authService;
 
 
-    @Operation(summary = "Register the user", description = "Register the user and add details in database")
+    @Operation(summary = "Check user's email", description = "Check whether provided email is already registered or not")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "User registered successfully",
-                    content = @Content(schema = @Schema(implementation = LoginResponse.class))),
+            @ApiResponse(responseCode = "200", description = "True",
+                    content = @Content(schema = @Schema(implementation = Boolean.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request body",
                     content = @Content(schema = @Schema())),
             @ApiResponse(responseCode = "400", description = "User already exists",
                     content = @Content(schema = @Schema()))
     })
-    @PostMapping("/register")
-    public ResponseEntity<LoginResponse> registerUser(
-            @Valid @RequestBody RegisterUserRequest request,
-            HttpServletResponse response
+    @PostMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmail(
+            @RequestParam @NotBlank @NotNull String email
     ){
-        TokenResponse registeredUserResp= authService.registerUser(request);
+        boolean registeredUserResp = authService.checkEmail(email);
 
-        Cookie cookie = new Cookie("refreshToken", registeredUserResp.getRefreshToken());
-        cookie.setHttpOnly(true);       // http-only cookie
-        response.addCookie(cookie);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(LoginResponse.builder()
-                .message(registeredUserResp.getMessage())
-                .accessToken(registeredUserResp.getAccessToken())
-                .build());
+        return ResponseEntity.ok(registeredUserResp);
     }
 
 
@@ -110,5 +104,31 @@ public class AuthController {
                         .accessToken(loginResponseDto.getAccessToken())
                         .build()
         );
+    }
+
+    @Operation(summary = "Register the user", description = "Register the user and add details in database")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User registered successfully",
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request body",
+                    content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "400", description = "User already exists",
+                    content = @Content(schema = @Schema()))
+    })
+    @PostMapping("/register")
+    public ResponseEntity<LoginResponse> registerAndVerify(
+            @Valid @RequestBody RegisterUserRequest request,
+            HttpServletResponse response
+    ) {
+        TokenResponse registerAndVerifyResp = authService.registerAndVerify(request);
+
+        Cookie cookie = new Cookie("refreshToken", registerAndVerifyResp.getRefreshToken());
+        cookie.setHttpOnly(true);       // http-only cookie
+        response.addCookie(cookie);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(LoginResponse.builder()
+            .message(registerAndVerifyResp.getMessage())
+            .accessToken(registerAndVerifyResp.getAccessToken())
+            .build());
     }
 }

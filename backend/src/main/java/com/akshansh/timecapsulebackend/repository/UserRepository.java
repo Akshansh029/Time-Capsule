@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     ActiveUserResponse findActiveUserDetails(UUID userId);
 
     List<UserDto> findByNameContainingOrEmailContaining(String name, String email);
+
+    boolean existsByEmail(String email);
 }

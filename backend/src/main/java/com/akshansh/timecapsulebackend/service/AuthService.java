@@ -1,13 +1,17 @@
 package com.akshansh.timecapsulebackend.service;
 
+import com.akshansh.timecapsulebackend.exception.InvalidVerificationCode;
 import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
 import com.akshansh.timecapsulebackend.exception.UserAlreadyExistsException;
 import com.akshansh.timecapsulebackend.mapper.UserMapper;
 import com.akshansh.timecapsulebackend.model.dto.*;
 import com.akshansh.timecapsulebackend.model.entity.User;
 import com.akshansh.timecapsulebackend.model.entity.UserPrincipal;
+import com.akshansh.timecapsulebackend.model.entity.UserVerification;
 import com.akshansh.timecapsulebackend.repository.UserRepository;
+import com.akshansh.timecapsulebackend.repository.UserVerificationRepository;
 import com.akshansh.timecapsulebackend.util.JwtUtil;
+import com.akshansh.timecapsulebackend.util.VerificationCodeGenerator;
 import io.jsonwebtoken.JwtException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,38 +29,35 @@ import java.util.UUID;
 public class AuthService {
     private final UserRepository userRepo;
     private final UserDetailsServiceImpl userDetailsService;
+    private final UserVerificationRepository verificationRepository;
+    private final VerificationCodeGenerator verificationCodeGenerator;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public TokenResponse registerUser(@Valid RegisterUserRequest request) {
-        User user = userRepo.findByEmail(request.getEmail());
+    public boolean checkEmail(String email) {
 
-        if(user != null){
+        if(userRepo.existsByEmail(email)){
             throw new UserAlreadyExistsException(
-                    "User with email: " + request.getEmail() + " already exists");
+                    "User with email: " + email + " already exists");
         }
 
-        User newUser = new User(
-                request.getName(),
-                request.getEmail(),
-                passwordEncoder.encode(request.getPassword()),
-                LocalDateTime.now()
-        );
+        String code = verificationCodeGenerator.generateVerificationCode();
 
-        userRepo.save(newUser);
+        UserVerification userVerification = UserVerification.builder()
+                .email(email)
+                .verificationCode(code)
+                .expiresAt(LocalDateTime.now().plusMinutes(2))
+                .build();
 
-        // Authenticate email and password
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        // Save verification token
+        verificationRepository.save(userVerification);
 
-        UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(request.getEmail());
-        String accessToken = jwtUtil.generateAccessToken(userDetails);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-
-        return new TokenResponse("User registered successfully", accessToken, refreshToken);
+        // Send email verification code to user
+        emailService.sendVerificationEmail(email, code);
+        return true;
     }
 
     public TokenResponse loginUser(@Valid LoginRequest request) {
@@ -81,5 +82,32 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(userDetails);
 
         return new TokenResponse("Token refreshed", accessToken, refreshToken);
+    }
+
+    public TokenResponse registerAndVerify(RegisterUserRequest request) {
+        UserVerification userVerification = verificationRepository.findByEmail(request.getEmail());
+
+        if (userVerification != null && userVerification.getVerificationCode().equals(request.getVerificationCode())) {
+            User newUser = new User(
+                    request.getName(),
+                    request.getEmail(),
+                    passwordEncoder.encode(request.getPassword()),
+                    LocalDateTime.now()
+            );
+
+            userRepo.save(newUser);
+
+            // Authenticate email and password
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+
+            UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(request.getEmail());
+            String accessToken = jwtUtil.generateAccessToken(userDetails);
+            String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+
+            return new TokenResponse("User registered successfully", accessToken, refreshToken);
+        }
+        throw new InvalidVerificationCode("Invalid verification code! Try again");
     }
 }
