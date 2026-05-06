@@ -162,6 +162,28 @@ const CapsuleDetailsPage = () => {
     }
   };
 
+  const handleDownload = async (fileUrl: string | undefined) => {
+    if (!fileUrl) return;
+    const key = fileUrl.split("/").pop() || fileUrl;
+    try {
+      const response = await api.get("/files/download", {
+        params: { key },
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", key);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err);
+      toast.error("Failed to download file.");
+    }
+  };
+
   useEffect(() => {
     if (slug) {
       fetchCapsule();
@@ -236,8 +258,9 @@ const CapsuleDetailsPage = () => {
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Button
+                  onClick={() => handleDownload(content.fileUrl)}
                   variant="outline"
-                  className="rounded-full gold-gradient border-none text-primary-foreground"
+                  className="rounded-full gold-gradient border-none text-primary-foreground relative z-10"
                   size="icon"
                 >
                   <Download className="w-4 h-4" />
@@ -274,9 +297,10 @@ const CapsuleDetailsPage = () => {
               </div>
             </div>
             <Button
+              onClick={() => handleDownload(content.fileUrl)}
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:text-primary"
+              className="text-muted-foreground hover:text-primary relative z-10"
             >
               <Download className="w-4 h-4" />
             </Button>

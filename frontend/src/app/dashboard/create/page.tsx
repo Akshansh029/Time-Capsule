@@ -75,7 +75,9 @@ type CreateCapsuleFormValues = z.infer<typeof createCapsuleSchema>;
 const CreateCapsulePage = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [selectedTime, setSelectedTime] = useState("12:00");
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -138,6 +140,82 @@ const CreateCapsulePage = () => {
     )}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
       date.getSeconds(),
     )}`;
+  };
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedExtensions = [
+      "pdf",
+      "ppt",
+      "doc",
+      "docx",
+      "txt",
+      "csv",
+      "png",
+      "jpg",
+      "jpeg",
+      "srt",
+    ];
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!extension || !allowedExtensions.includes(extension)) {
+      toast.error("Invalid File", {
+        description:
+          "Allowed extensions are: pdf, ppt, doc, docx, txt, csv, png, jpg, jpeg, srt",
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File Too Large", {
+        description: "Maximum allowed size is 10MB",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await api.post("/files/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const key = response.data;
+      const isImage = ["png", "jpg", "jpeg"].includes(extension);
+      appendContent({ type: isImage ? "IMAGE" : "FILE", fileUrl: key });
+      toast.success("File uploaded successfully");
+    } catch (error: any) {
+      console.error("Failed to upload file:", error);
+      toast.error("Upload Failed", {
+        description: error.response?.data?.message || "File upload failed.",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveContent = async (index: number) => {
+    const content = watch(`contents.${index}`);
+    if (content.type !== "TEXT" && content.fileUrl) {
+      try {
+        const response = await api.delete("/files/delete", {
+          params: { key: content.fileUrl },
+        });
+        toast.success(response.data || "File deleted from cloud");
+      } catch (error: any) {
+        console.error("Failed to delete file:", error);
+        toast.error("Failed to delete file", {
+          description:
+            error.response?.data?.message ||
+            "Verify your connection and try again.",
+        });
+      }
+    }
+    removeContent(index);
   };
 
   const onSubmit = async (data: CreateCapsuleFormValues) => {
@@ -337,29 +415,27 @@ const CreateCapsulePage = () => {
                       <Type className="w-3 h-3 mr-1.5" />
                       Text
                     </Button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      accept=".pdf,.ppt,.doc,.docx,.txt,.csv,.png,.jpg,.jpeg,.srt"
+                    />
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() =>
-                        appendContent({ type: "IMAGE", fileUrl: "" })
-                      }
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
                       className="border-primary/20 text-primary hover:bg-primary/10 rounded-full h-8 text-[9px] uppercase tracking-widest font-bold"
                     >
-                      <ImageIcon className="w-3 h-3 mr-1.5" />
-                      Image
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        appendContent({ type: "FILE", fileUrl: "" })
-                      }
-                      className="border-primary/20 text-primary hover:bg-primary/10 rounded-full h-8 text-[9px] uppercase tracking-widest font-bold"
-                    >
-                      <FileIcon className="w-3 h-3 mr-1.5" />
-                      File
+                      {isUploading ? (
+                        <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                      ) : (
+                        <FileIcon className="w-3 h-3 mr-1.5" />
+                      )}
+                      Select local img/file
                     </Button>
                   </div>
                 </div>
@@ -372,7 +448,7 @@ const CreateCapsulePage = () => {
                     >
                       <button
                         type="button"
-                        onClick={() => removeContent(index)}
+                        onClick={() => handleRemoveContent(index)}
                         className="absolute top-4 right-4 text-muted-foreground hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="w-4 h-4" />
