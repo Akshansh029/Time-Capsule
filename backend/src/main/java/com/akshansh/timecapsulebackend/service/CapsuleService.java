@@ -32,6 +32,7 @@ public class CapsuleService {
     private final UserRepository userRepo;
     private final CapsuleMemberRepo capsuleMemberRepo;
     private final CapsuleContentRepo capsuleContentRepo;
+    private final CapsuleMapper capsuleMapper;
 
     private boolean isOwner(Capsule capsule, UUID currentUserId){
         return capsule.getOwner().getId().equals(currentUserId);
@@ -81,7 +82,7 @@ public class CapsuleService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         // Save new capsule
-        Capsule newCapsule = CapsuleMapper.toEntity(request, currentUser);
+        Capsule newCapsule = capsuleMapper.toEntity(request, currentUser);
         capsuleRepo.save(newCapsule);
 
         // Save the contents
@@ -116,7 +117,7 @@ public class CapsuleService {
             }
         }
 
-        return CapsuleMapper.toDto(newCapsule);
+        return capsuleMapper.toDto(newCapsule);
     }
 
     public Page<CapsuleDto> getAllCapsulesForUser(int pageNo, int pageSize, String search){
@@ -137,7 +138,7 @@ public class CapsuleService {
         List<CapsuleDto> memberOf = capsuleMemberRepo.findByUserId(currentUserId)
                 .stream()
                 .map(CapsuleMember::getCapsule)
-                .map(CapsuleMapper::toDto)
+                .map(capsuleMapper::toDto)
                 .toList();
 
         int start = (int) pageable.getOffset();
@@ -163,10 +164,10 @@ public class CapsuleService {
 
         // Return based on status
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
-            return CapsuleMapper.toUnlockedCapsuleDto(capsule);
+            return capsuleMapper.toUnlockedCapsuleDto(capsule);
         }
 
-        return CapsuleMapper.toLockedCapsuleDto(capsule);
+        return capsuleMapper.toLockedCapsuleDto(capsule);
     }
 
     @Transactional
@@ -199,7 +200,7 @@ public class CapsuleService {
 
         // Save the updated capsule
         capsuleRepo.save(capsule);
-        return CapsuleMapper.toDto(capsule);
+        return capsuleMapper.toDto(capsule);
     }
 
     @Transactional
@@ -292,25 +293,5 @@ public class CapsuleService {
         }
 
         capsuleContentRepo.delete(content);
-    }
-
-    public Page<CapsuleContentDto> getAllContentsForCapsule(String slug, int pageNo, int pageSize){
-        UUID currentUserId = getCurrentUser().getUserId();
-
-        Capsule capsule = capsuleRepo.findBySlug(slug);
-
-        if(capsule == null){
-            throw new ResourceNotFoundException("Capsule not found");
-        }
-
-        validateAccess(capsule, currentUserId);
-
-        if (capsule.getStatus() == CapsuleStatus.LOCKED) {
-            throw new CapsuleAlreadyUnlockedException("Capsule is locked");
-        }
-
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-
-        return capsuleContentRepo.findAllContent(pageable, capsule.getId());
     }
 }

@@ -160,21 +160,4 @@ public class CapsuleController {
         capsuleService.removeContent(slug, contentId);
         return ResponseEntity.noContent().build();
     }
-
-    @Operation(summary = "Get all contents of a capsule", description = "Fetch and return all the contents of a capsule")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Capsules retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = Page.class))),
-            @ApiResponse(responseCode = "409", description = "Capsule already unlocked",
-                    content = @Content(schema = @Schema()))
-    })
-    @GetMapping("/{slug}/contents")
-    public ResponseEntity<Page<CapsuleContentDto>> getAllContentsForCapsule(
-            @RequestParam(defaultValue = "0", required = false) int pageNo,
-            @RequestParam(defaultValue = "10", required = false) int pageSize,
-            @PathVariable String slug
-    ){
-        Page<CapsuleContentDto> contentResponse = capsuleService.getAllContentsForCapsule(slug, pageNo, pageSize);
-        return ResponseEntity.status(HttpStatus.OK).body(contentResponse);
-    }
 }
