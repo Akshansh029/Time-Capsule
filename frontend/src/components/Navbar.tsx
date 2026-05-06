@@ -59,7 +59,7 @@ export function Navbar() {
               onClick={handleLogout}
               className="uppercase tracking-widest text-xs border border-primary/20 hover:bg-primary/10"
             >
-              Exorcise
+              Log out
             </Button>
           )}
         </div>

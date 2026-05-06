@@ -45,6 +45,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 
 const CapsuleDetailsPage = () => {
   const params = useParams();
@@ -314,8 +315,8 @@ const CapsuleDetailsPage = () => {
         return (
           <div className="rounded-2xl overflow-hidden bg-white/5 border border-white/10 group">
             <div className="relative aspect-video">
-              <img
-                src={content.preAssignedUrl}
+              <Image
+                src={content.preAssignedUrl!}
                 alt="Archival Imagery"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
