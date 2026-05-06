@@ -18,6 +18,7 @@ public class CapsuleContentDto {
     private ContentType type;
     private String body;        // null if type is IMAGE or FILE
     private String fileUrl;     // null if type is TEXT
+    private String preAssignedUrl;     // null if type is TEXT
     private String addedByName;
     private LocalDateTime addedAt;
 }
