@@ -1,6 +1,7 @@
 package com.akshansh.timecapsulebackend.service;
 
 import com.akshansh.timecapsulebackend.exception.CapsuleAlreadyUnlockedException;
+import com.akshansh.timecapsulebackend.exception.InvalidRequestException;
 import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
 import com.akshansh.timecapsulebackend.exception.UnlockDatePassedException;
 import com.akshansh.timecapsulebackend.mapper.CapsuleMapper;
@@ -99,10 +100,14 @@ public class CapsuleService {
                             .build())
                     .toList();
             capsuleContentRepo.saveAll(contents);
+        } else{
+            throw new InvalidRequestException("Cannot create capsule without content");
         }
 
         // Save the capsule members
         if(!request.getIsPrivate() && request.getMembers() != null && !request.getMembers().isEmpty()){
+
+            // Check if all the invitees are valid
             for(AddMemberRequestDto m : request.getMembers()){
                 User invitee = userRepo.findByEmail(m.getUserEmail());
 
@@ -110,6 +115,14 @@ public class CapsuleService {
                     throw new ResourceNotFoundException("Invitee not found: " + m.getUserEmail());
                 }
 
+                if(invitee == currentUser){
+                    throw new InvalidRequestException("User cannot add themselves as capsule member");
+                }
+            }
+
+            // Register invitees
+            for(AddMemberRequestDto m : request.getMembers()) {
+                User invitee = userRepo.findByEmail(m.getUserEmail());
                 capsuleMemberRepo.save(CapsuleMember.builder()
                         .capsule(newCapsule)
                         .user(invitee)
