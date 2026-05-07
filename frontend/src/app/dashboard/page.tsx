@@ -15,9 +15,9 @@ import {
   Archive,
   Users,
   Globe,
-  Settings as SettingsIcon,
   LayoutDashboard,
   LockOpen,
+  Clock,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ const DashboardPage = () => {
   const [pageSize] = useState(6);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
-  const [activeTab, setActiveTab] = useState("my");
+  const [activeTab, setActiveTab] = useState("all");
 
   const fetchCapsules = async () => {
     setLoading(true);
@@ -47,7 +47,7 @@ const DashboardPage = () => {
       });
 
       let fetchedCapsules = response.data.content;
-      if (activeTab === "my") {
+      if (activeTab === "due") {
         fetchedCapsules = fetchedCapsules.filter((c) => c.status === "LOCKED");
       } else if (activeTab === "public") {
         fetchedCapsules = fetchedCapsules.filter((c) => !c.isPrivate);
@@ -56,6 +56,7 @@ const DashboardPage = () => {
           (c) => c.status === "UNLOCKED",
         );
       }
+      // "all" and "shared" pass through unfiltered
 
       setCapsules(fetchedCapsules);
       setTotalPages(response.data.totalPages);
@@ -79,7 +80,8 @@ const DashboardPage = () => {
   };
 
   const navItems = [
-    { id: "my", label: "My Capsules", icon: LayoutDashboard },
+    { id: "all", label: "All Capsules", icon: Archive },
+    { id: "due", label: "Due Capsules", icon: Clock },
     { id: "shared", label: "Shared with me", icon: Users },
     { id: "public", label: "Public Vaults", icon: Globe },
     { id: "unlocked", label: "Unlocked Vaults", icon: LockOpen },

@@ -315,7 +315,7 @@ const CapsuleDetailsPage = () => {
         return (
           <div className="rounded-2xl overflow-hidden bg-white/5 border border-white/10 group">
             <div className="relative aspect-video">
-              <Image
+              <img
                 src={content.preAssignedUrl!}
                 alt="Archival Imagery"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
