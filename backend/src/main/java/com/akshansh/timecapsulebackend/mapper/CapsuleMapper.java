@@ -123,7 +123,7 @@ public class CapsuleMapper {
         dto.setType(content.getType());
         dto.setBody(content.getBody());
         dto.setFileUrl(content.getFileUrl());
-        dto.setPreAssignedUrl(generatePresignedUrl(content.getFileUrl(), PRESIGN_DURATION));
+        dto.setPreAssignedUrl(content.getFileUrl() != null ? generatePresignedUrl(content.getFileUrl(), PRESIGN_DURATION) : null);
         dto.setAddedByName(content.getAddedBy().getName());
         dto.setAddedAt(content.getAddedAt());
         return dto;
