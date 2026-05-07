@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import api from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 
 export interface UserSuggestion {
   id: string;
@@ -31,6 +32,7 @@ interface UserComboBoxProps {
 }
 
 export function UserComboBox({ onSelect, selectedEmails }: UserComboBoxProps) {
+  const currentUserEmail = useAuthStore((state) => state.user?.email);
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -109,38 +111,40 @@ export function UserComboBox({ onSelect, selectedEmails }: UserComboBoxProps) {
             )}
 
             <CommandGroup>
-              {suggestions.map((user) => {
-                const isAlreadySelected = selectedEmails.includes(user.email);
-                return (
-                  <CommandItem
-                    key={user.id}
-                    value={user.email}
-                    disabled={isAlreadySelected}
-                    onSelect={() => {
-                      onSelect(user);
-                      setOpen(false);
-                      setQuery("");
-                    }}
-                    className={cn(
-                      "flex flex-col items-start gap-1 p-3 cursor-pointer transition-colors",
-                      "hover:bg-primary/10 aria-selected:bg-primary/20",
-                      isAlreadySelected && "opacity-50 cursor-not-allowed",
-                    )}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-sm font-semibold text-foreground">
-                        {user.name}
-                      </span>
-                      {isAlreadySelected && (
-                        <Check className="w-3 h-3 text-primary" />
+              {suggestions
+                .filter((u) => u.email !== currentUserEmail)
+                .map((user) => {
+                  const isAlreadySelected = selectedEmails.includes(user.email);
+                  return (
+                    <CommandItem
+                      key={user.id}
+                      value={user.email}
+                      disabled={isAlreadySelected}
+                      onSelect={() => {
+                        onSelect(user);
+                        setOpen(false);
+                        setQuery("");
+                      }}
+                      className={cn(
+                        "flex flex-col items-start gap-1 p-3 cursor-pointer transition-colors",
+                        "hover:bg-primary/10 aria-selected:bg-primary/20",
+                        isAlreadySelected && "opacity-50 cursor-not-allowed",
                       )}
-                    </div>
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-tight">
-                      {user.email}
-                    </span>
-                  </CommandItem>
-                );
-              })}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-sm font-semibold text-foreground">
+                          {user.name}
+                        </span>
+                        {isAlreadySelected && (
+                          <Check className="w-3 h-3 text-primary" />
+                        )}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-tight">
+                        {user.email}
+                      </span>
+                    </CommandItem>
+                  );
+                })}
             </CommandGroup>
           </CommandList>
         </Command>

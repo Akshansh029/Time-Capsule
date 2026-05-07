@@ -22,8 +22,18 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useAuthStore } from "@/store/authStore";
 
 const DashboardPage = () => {
+  const user = useAuthStore((state) => state.user);
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "??";
   const [capsules, setCapsules] = useState<CapsuleDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -119,17 +129,21 @@ const DashboardPage = () => {
             </div>
 
             <div className="pt-8 border-t border-white/5">
-              <div className="glass p-6 rounded-2xl relative overflow-hidden group">
-                <div className="relative z-10">
-                  <h3 className="font-serif text-lg mb-2">
-                    The Vault Is Secure
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-4 leading-relaxed">
-                    Encryption level: Military Grade AES-256. Your memories are
-                    safe for eternity.
-                  </p>
-                  <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div className="w-full h-full bg-primary/50 animate-pulse" />
+              <div className="glass p-5 rounded-2xl flex flex-col gap-3 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-[40px] rounded-full -mr-8 -mt-8" />
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-primary tracking-widest">
+                      {initials}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {user?.name}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">
+                      {user?.email}
+                    </p>
                   </div>
                 </div>
               </div>
