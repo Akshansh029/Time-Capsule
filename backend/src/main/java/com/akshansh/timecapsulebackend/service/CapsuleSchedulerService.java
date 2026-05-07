@@ -2,7 +2,9 @@ package com.akshansh.timecapsulebackend.service;
 
 import com.akshansh.timecapsulebackend.model.entity.Capsule;
 import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
+import com.akshansh.timecapsulebackend.model.entity.UserVerification;
 import com.akshansh.timecapsulebackend.repository.CapsuleRepository;
+import com.akshansh.timecapsulebackend.repository.UserVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,6 +21,7 @@ public class CapsuleSchedulerService {
 
     private final CapsuleRepository capsuleRepository;
     private final EmailService emailService;
+    private final UserVerificationRepository userVerificationRepository;
 
     @Transactional
     @Scheduled(fixedDelay = 60000)      // runs every 60 secs
@@ -36,5 +39,14 @@ public class CapsuleSchedulerService {
             // Send emails to capsule members
             emailService.sendUnlockNotification(capsule);
         }
+    }
+
+    @Transactional
+    @Scheduled(fixedDelay = (1000L * 60 * 60))        // runs every 1 hour
+    public void deleteExpiredVerificationCodes(){
+        List<UserVerification> expiredCodes = userVerificationRepository.findAllByExpiresAtBefore(LocalDateTime.now());
+
+        userVerificationRepository.deleteAll(expiredCodes);
+        log.info("SCHEDULER: Deleted all expired codes in UserVerification table");
     }
 }
