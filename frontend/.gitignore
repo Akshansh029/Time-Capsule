@@ -8,6 +8,7 @@
 
 time-capsule-prd.md
 .agents/
+.env.local
 
 # testing
 /coverage
