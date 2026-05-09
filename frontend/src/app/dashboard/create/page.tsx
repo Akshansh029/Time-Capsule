@@ -21,8 +21,6 @@ import {
   Sparkles,
   ArrowLeft,
   Loader2,
-  Clock as ClockIcon,
-  Plus,
   Trash2,
   UserPlus,
   Type,

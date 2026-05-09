@@ -57,7 +57,8 @@ export default function LandingPage() {
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
                   Compose messages, upload high-fidelity media, or record voice
-                  memos. Every entry is encrypted the moment it's conceived.
+                  memos. Every entry is encrypted the moment it&apos;s
+                  conceived.
                 </p>
               </div>
 
@@ -69,8 +70,9 @@ export default function LandingPage() {
                   Seal
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Define the duration of the seal. Whether it's five years or
-                  fifty, your vault remains impenetrable until the chosen hour.
+                  Define the duration of the seal. Whether it&apos;s five years
+                  or fifty, your vault remains impenetrable until the chosen
+                  hour.
                 </p>
               </div>
 

@@ -64,6 +64,7 @@ export default function LoginPage() {
       router.push("/dashboard");
     } catch (error) {
       // Error is handled by interceptor
+      console.log(error);
     } finally {
       setIsLoading(false);
     }

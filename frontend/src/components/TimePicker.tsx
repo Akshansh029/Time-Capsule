@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -86,14 +88,6 @@ const TimePicker = ({ value, onChange, error }: TimePickerProps) => {
                     key={h}
                     type="button"
                     onClick={() => {
-                      const newH =
-                        period === "PM"
-                          ? parseInt(h) === 12
-                            ? "12"
-                            : (parseInt(h) + 12).toString()
-                          : parseInt(h) === 12
-                            ? "00"
-                            : h.padStart(2, "0");
                       handleTimeChange(h, minutes, period);
                     }}
                     className={cn(

@@ -45,7 +45,6 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import Image from "next/image";
 
 const CapsuleDetailsPage = () => {
   const params = useParams();
@@ -231,8 +230,6 @@ const CapsuleDetailsPage = () => {
         params: { key },
         responseType: "blob",
       });
-
-      console.log(response);
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -458,7 +455,7 @@ const CapsuleDetailsPage = () => {
                     Archival Teaser
                   </Label>
                   <p className="text-sm text-muted-foreground leading-relaxed italic">
-                    "{capsule.description}"
+                    &quot;{capsule.description}&quot;
                   </p>
                 </div>
 

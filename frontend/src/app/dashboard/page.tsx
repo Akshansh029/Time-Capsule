@@ -15,7 +15,6 @@ import {
   Archive,
   Users,
   Globe,
-  LayoutDashboard,
   LockOpen,
   Clock,
 } from "lucide-react";
@@ -81,7 +80,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     fetchCapsules();
-  }, [page, search, activeTab]);
+  }, [page, search, activeTab, fetchCapsules]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

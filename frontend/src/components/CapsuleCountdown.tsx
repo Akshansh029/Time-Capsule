@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 interface TimeLeft {
   days: number;
@@ -17,7 +17,7 @@ const CapsuleCountdown: React.FC<CapsuleCountdownProps> = ({
   unlockDate,
   onUnlock,
 }) => {
-  const calculateTimeLeft = (): TimeLeft => {
+  const calculateTimeLeft = useCallback((): TimeLeft => {
     const difference = +new Date(unlockDate) - +new Date();
     let timeLeft: TimeLeft = { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
@@ -30,7 +30,7 @@ const CapsuleCountdown: React.FC<CapsuleCountdownProps> = ({
       };
     }
     return timeLeft;
-  };
+  }, [unlockDate]);
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft());
 
@@ -51,7 +51,7 @@ const CapsuleCountdown: React.FC<CapsuleCountdownProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [unlockDate]);
+  }, [unlockDate, calculateTimeLeft, onUnlock]);
 
   const TimeUnit = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center">

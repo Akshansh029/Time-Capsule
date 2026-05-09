@@ -17,7 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { Loader2, Mail, ShieldCheck } from "lucide-react";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
@@ -82,6 +82,7 @@ export default function RegisterPage() {
       });
     } catch (error) {
       // Error handled by interceptor
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -108,6 +109,7 @@ export default function RegisterPage() {
       router.push("/dashboard");
     } catch (error) {
       // Error handled by interceptor
+      console.log(error);
     } finally {
       setIsLoading(false);
     }

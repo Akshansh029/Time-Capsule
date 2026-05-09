@@ -26,11 +26,11 @@ export default function PhilosophyPage() {
 
             <div className="prose prose-invert max-w-none text-center mt-12 mb-12">
               <p className="text-sm md:text-base leading-relaxed text-foreground/80 font-light mx-auto max-w-2xl italic">
-                "We believe that human experience is the most valuable artifact
-                of our existence. In an era of disposable data and fleeting
-                moments, the Eternal Vault stands as a testament to permanence.
-                Our mission is to provide an inviolable sanctuary where the
-                present can speak directly to the future."
+                &quot;We believe that human experience is the most valuable
+                artifact of our existence. In an era of disposable data and
+                fleeting moments, the Eternal Vault stands as a testament to
+                permanence. Our mission is to provide an inviolable sanctuary
+                where the present can speak directly to the future.&quot;
               </p>
             </div>
 
