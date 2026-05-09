@@ -42,7 +42,7 @@ public class CapsuleSchedulerService {
     }
 
     @Transactional
-    @Scheduled(fixedDelay = (1000L * 60 * 60))        // runs every 1 hour
+    @Scheduled(fixedDelay = (1000L * 60 * 60 * 6))        // runs every 6 hours
     public void deleteExpiredVerificationCodes(){
         List<UserVerification> expiredCodes = userVerificationRepository.findAllByExpiresAtBefore(LocalDateTime.now());
 
