@@ -16,7 +16,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.web.bind.annotation.*;
@@ -65,9 +67,15 @@ public class AuthController {
     ){
         TokenResponse loginResp = authService.loginUser(request);
 
-        Cookie cookie = new Cookie("refreshToken", loginResp.getRefreshToken());
-        cookie.setHttpOnly(true);       // http-only cookie
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", loginResp.getRefreshToken())
+                        .httpOnly(true)
+                        .secure(true)
+                        .path("/")
+                        .maxAge(30 * 24 * 60 * 60) // 30 days
+                        .sameSite("None") // Required if frontend/backend are on different subdomains
+                        .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.status(HttpStatus.OK).body(LoginResponse.builder()
                 .message(loginResp.getMessage())
@@ -122,9 +130,15 @@ public class AuthController {
     ) {
         TokenResponse registerAndVerifyResp = authService.registerAndVerify(request);
 
-        Cookie cookie = new Cookie("refreshToken", registerAndVerifyResp.getRefreshToken());
-        cookie.setHttpOnly(true);       // http-only cookie
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", registerAndVerifyResp.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(30 * 24 * 60 * 60) // 30 days
+                .sameSite("None")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(LoginResponse.builder()
             .message(registerAndVerifyResp.getMessage())
