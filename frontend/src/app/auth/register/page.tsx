@@ -311,7 +311,10 @@ export default function RegisterPage() {
                   </p>
                 )}
                 <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">
-                  Check your inbox for a verification code
+                  Check your inbox for a verification code.{" "}
+                  <span className="text-primary/70 font-semibold">
+                    Valid for 2 mins.
+                  </span>
                 </p>
               </div>
 

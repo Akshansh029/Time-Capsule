@@ -80,7 +80,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     fetchCapsules();
-  }, [page, search, activeTab, fetchCapsules]);
+  }, [page, search, activeTab]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

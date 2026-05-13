@@ -20,8 +20,8 @@ import java.util.List;
 public class CapsuleSchedulerService {
 
     private final CapsuleRepository capsuleRepository;
-    private final EmailService emailService;
     private final UserVerificationRepository userVerificationRepository;
+    private final ResendEmailService resendEmailService;
 
     @Transactional
     @Scheduled(fixedDelay = 60000)      // runs every 60 secs
@@ -37,7 +37,7 @@ public class CapsuleSchedulerService {
             log.info("Capsule: {}, unlocked from scheduler at: {}", capsule.getSlug(), LocalDateTime.now());
 
             // Send emails to capsule members
-            emailService.sendUnlockNotification(capsule);
+            resendEmailService.sendUnlockNotification(capsule);
         }
     }
 

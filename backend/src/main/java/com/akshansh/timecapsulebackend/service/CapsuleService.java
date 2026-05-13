@@ -34,7 +34,7 @@ public class CapsuleService {
     private final CapsuleMemberRepo capsuleMemberRepo;
     private final CapsuleContentRepo capsuleContentRepo;
     private final CapsuleMapper capsuleMapper;
-    private final EmailService emailService;
+    private final ResendEmailService resendEmailService;
 
     private boolean isOwner(Capsule capsule, UUID currentUserId){
         return capsule.getOwner().getId().equals(currentUserId);
@@ -130,7 +130,7 @@ public class CapsuleService {
                         .build());
 
                 // Send invitation mail
-                emailService.sendInvitationEmail(m.getUserEmail(), m.getRole(), newCapsule, currentUser.getEmail());
+                resendEmailService.sendInvitationEmail(m.getUserEmail(), m.getRole(), newCapsule, currentUser.getEmail());
             }
         }
 

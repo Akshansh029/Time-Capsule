@@ -154,7 +154,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="relative my-8">
+          {/* <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-white/5" />
             </div>
@@ -171,7 +171,7 @@ export default function LoginPage() {
             disabled={isLoading}
           >
             <Shield className="mr-2 h-4 w-4" /> Sign In with Google
-          </Button>
+          </Button> */}
         </CardContent>
         <CardFooter className="flex flex-col items-center gap-4 pb-8 pt-4">
           <p className="text-xs text-muted-foreground tracking-widest uppercase">

@@ -133,6 +133,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>4.13.0</version>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

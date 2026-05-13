@@ -32,7 +32,7 @@ public class AuthService {
     private final UserDetailsServiceImpl userDetailsService;
     private final UserVerificationRepository verificationRepository;
     private final VerificationCodeGenerator verificationCodeGenerator;
-    private final EmailService emailService;
+    private final ResendEmailService resendEmailService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
@@ -57,7 +57,7 @@ public class AuthService {
         verificationRepository.save(userVerification);
 
         // Send email verification code to user
-        emailService.sendVerificationEmail(email, code);
+        resendEmailService.sendVerificationEmail(email, code);
         return true;
     }
 
@@ -86,10 +86,11 @@ public class AuthService {
     }
 
     public TokenResponse registerAndVerify(RegisterUserRequest request) {
-        UserVerification userVerification = verificationRepository.findByEmail(request.getEmail());
+        UserVerification userVerification = verificationRepository
+                .findFirstByEmailOrderByExpiresAtDesc(request.getEmail())
+                .orElseThrow(() -> new InvalidVerificationCode("Invalid verification code! Try again"));
 
-        if (userVerification != null
-                && userVerification.getVerificationCode().equals(request.getVerificationCode())
+        if (userVerification.getVerificationCode().equals(request.getVerificationCode())
                 && userVerification.getExpiresAt().isAfter(LocalDateTime.now())
         ) {
             // Delete all verification codes for the requested email when verified

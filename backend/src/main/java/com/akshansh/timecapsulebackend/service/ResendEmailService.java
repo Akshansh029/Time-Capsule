@@ -1,14 +1,15 @@
 package com.akshansh.timecapsulebackend.service;
 
+import com.akshansh.timecapsulebackend.exception.ResendEmailException;
 import com.akshansh.timecapsulebackend.model.entity.Capsule;
 import com.akshansh.timecapsulebackend.model.entity.MemberRole;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
@@ -17,44 +18,53 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-public class EmailService {
+public class ResendEmailService {
 
-    private final JavaMailSender mailSender;
+    private final Resend resend;
+
+    @Value("${resend.from.email}")
+    private String fromEmail;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
+    public ResendEmailService(Resend resend) {
+        this.resend = resend;
+    }
+
     public void sendVerificationEmail(String toEmail, String verificationCode) {
-        try{
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        try {
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from(fromEmail)
+                    .to(toEmail)
+                    .subject("Time Capsule: Verify your email")
+                    .html(buildVerificationHtml(verificationCode))
+                    .build();
 
-            helper.setTo(toEmail);
-            helper.setSubject("Time Capsule: Email Verification Code");
-            helper.setText("Your verification code is: " + verificationCode);
+            resend.emails().send(params);
 
-            mailSender.send(message);
             log.info("Email verification code SENT to: {}", toEmail);
-        } catch(MessagingException e){
+        } catch (ResendException e) {
             log.error("Failed to send code verification email to {}: {}", toEmail, e.getMessage());
+            throw new ResendEmailException("Failed to send verification email: " + e.getMessage());
         }
     }
 
     public void sendInvitationEmail(String toEmail, MemberRole inviteeRole, Capsule capsule, String invitedBy){
         try{
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from(fromEmail)
+                    .to(toEmail)
+                    .subject("✉️ Invitation for Time Capsule \"" + capsule.getTitle() + "\"")
+                    .html(buildInviteEmailBody(capsule, invitedBy, inviteeRole.toString()))
+                    .build();
 
-            helper.setTo(toEmail);
-            helper.setSubject("✉️ Invitation for Time Capsule \"" + capsule.getTitle() + "\"");
-            helper.setText(buildInviteEmailBody(capsule, invitedBy, inviteeRole.toString()), true);
-
-            mailSender.send(message);
+            resend.emails().send(params);
             log.info("Invitation email SENT to: {}", toEmail);
-        } catch(MessagingException e){
+        } catch(ResendException e){
             log.error("Failed to send invitation email to {}: {}", toEmail, e.getMessage());
+            throw new ResendEmailException("Failed to send invitation email: " + e.getMessage());
         }
     }
 
@@ -69,19 +79,28 @@ public class EmailService {
 
         for (String email : recipients) {
             try {
-                MimeMessage message = mailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                CreateEmailOptions params = CreateEmailOptions.builder()
+                        .from(fromEmail)
+                        .to(email)
+                        .subject("🔓 Your Time Capsule \"" + capsule.getTitle() + "\" is Now Open!")
+                        .html(buildEmailBody(capsule))
+                        .build();
 
-                helper.setTo(email);
-                helper.setSubject("🔓 Your Time Capsule \"" + capsule.getTitle() + "\" is Now Open!");
-                helper.setText(buildEmailBody(capsule), true); // true = isHtml
-
-                mailSender.send(message);
+                resend.emails().send(params);
                 log.info("SENT unlock notification for capsule: {} to email: {}", capsule.getSlug(), email);
-            } catch (MessagingException e) {
+            } catch (ResendException e) {
                 log.error("Failed to send unlock email to {}: {}", email, e.getMessage());
+                throw new ResendEmailException("Failed to send unlock notification email: " + e.getMessage());
             }
         }
+    }
+
+    private String buildVerificationHtml(String verificationCode) {
+        return """
+                <h2>Hi</h2>
+                <p>Thanks for registering. Your verification code is: %s.</p>
+                <p>If you didn't register, ignore this email.</p>
+                """.formatted(verificationCode);
     }
 
     private String buildEmailBody(Capsule capsule) {
