@@ -8,6 +8,8 @@
 
 **Time Capsule** is a meaningful web application designed to preserve memories and deliver them to your future self or loved ones. Create sealed digital capsules containing messages, photos, and notes, and schedule them to be revealed at any future date.
 
+![Landing Page](/public/landing.png)
+
 ## Table of Contents
 
 - [About](#about)
@@ -15,6 +17,7 @@
 - [Tech Stack](#️tech-stack)
 - [Architecture](#️architecture)
 - [Project Structure](#project-structure)
+- [Screenshots](#screenshots)
 - [Getting Started](#getting-started)
 - [Configuration](configuration)
 - [Security](#security)
@@ -90,6 +93,23 @@ time-capsule/
     └── tailwind.config.ts    # Styling configuration
 ```
 
+## Screenshots
+
+- Dashboard
+  ![Dashboard](/public/dashboard.png)
+
+- Create Capsule
+  ![Create Capsule](/public/create-capsule.png)
+
+- View Capsule
+  ![View Capsule](/public/capsule-details.png)
+
+- Login Page
+  ![Login Page](/public/login.png)
+
+- Email Notification
+  ![Email Notification](/public/email-notification.png)
+
 ## Getting Started
 
 ### Prerequisites
@@ -133,6 +153,8 @@ time-capsule/
 - `aws.bucket.name` = ${S3_BUCKET_NAME}
 - `aws.accessKey` = ${AWS_ACCESS_KEY}
 - `aws.secretKey` = ${AWS_SECRET_KEY}
+- `resend.api.key` = ${RESEND_API_KEY}
+- `resend.from.email` = ${RESEND_FROM_EMAIL}
 
 ### Frontend (`.env.local`)
 
@@ -157,7 +179,6 @@ Contributions are welcome! Please follow these steps:
 
 ## What's Next?
 
-- [ ] **WebSockets**: Real-time unlock notifications.
 - [ ] **Dockerization**: Full-stack containerization for one-click deployment.
 - [ ] **Multimedia Player**: In-app song player for audio memories.
 - [ ] **Advanced Filtering**: Search and filter public vaults by nostalgia categories.
