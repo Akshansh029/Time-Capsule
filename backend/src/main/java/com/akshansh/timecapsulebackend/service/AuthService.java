@@ -75,6 +75,7 @@ public class AuthService {
         return issueTokens(userDetails, "Login Successful");
     }
 
+    @Transactional
     public TokenResponse refreshToken(String refreshToken) {
         // Hash the raw refresh token
         String tokenHash = jwtUtil.hashToken(refreshToken);
@@ -113,6 +114,7 @@ public class AuthService {
         return new TokenResponse("Token refreshed", accessToken, newRefreshToken);
     }
 
+    @Transactional
     public TokenResponse registerAndVerify(RegisterUserRequest request) {
         // Fetch the latest verification code for the requested mail
         UserVerification userVerification = verificationRepo

@@ -56,5 +56,6 @@ public class SchedulerService {
     @Scheduled(cron = "0 0 3 * * *")
     public void deleteExpiredRefreshTokens(){
         refreshTokenRepo.deleteByExpiresAtBefore(LocalDateTime.now());
+        log.info("SCHEDULER: Delete all expired refresh tokens in Refresh Token table");
     }
 }

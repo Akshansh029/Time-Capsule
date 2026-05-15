@@ -95,7 +95,10 @@ public class AuthController {
                     content = @Content(schema = @Schema())),
     })
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refreshToken(HttpServletRequest request){
+    public ResponseEntity<LoginResponse> refreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ){
         if(request.getCookies() == null){
             throw new ResourceNotFoundException("Refresh token not found in cookies");
         }
@@ -106,6 +109,17 @@ public class AuthController {
                 .map(Cookie::getValue)
                 .orElseThrow(()-> new AuthenticationServiceException("RefreshToken not found"));
         TokenResponse loginResponseDto = authService.refreshToken(refreshToken);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", loginResponseDto.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(30 * 24 * 60 * 60) // 30 days
+                .sameSite("None")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
         return ResponseEntity.status(HttpStatus.OK).body(
                 LoginResponse.builder()
                         .message(loginResponseDto.getMessage())
