@@ -1,13 +1,13 @@
 package com.akshansh.timecapsulebackend.service;
 
 import com.akshansh.timecapsulebackend.exception.InvalidVerificationCode;
-import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
 import com.akshansh.timecapsulebackend.exception.UserAlreadyExistsException;
-import com.akshansh.timecapsulebackend.mapper.UserMapper;
 import com.akshansh.timecapsulebackend.model.dto.*;
+import com.akshansh.timecapsulebackend.model.entity.RefreshToken;
 import com.akshansh.timecapsulebackend.model.entity.User;
 import com.akshansh.timecapsulebackend.model.entity.UserPrincipal;
 import com.akshansh.timecapsulebackend.model.entity.UserVerification;
+import com.akshansh.timecapsulebackend.repository.RefreshTokenRepository;
 import com.akshansh.timecapsulebackend.repository.UserRepository;
 import com.akshansh.timecapsulebackend.repository.UserVerificationRepository;
 import com.akshansh.timecapsulebackend.util.JwtUtil;
@@ -30,7 +30,8 @@ import java.util.UUID;
 public class AuthService {
     private final UserRepository userRepo;
     private final UserDetailsServiceImpl userDetailsService;
-    private final UserVerificationRepository verificationRepository;
+    private final UserVerificationRepository verificationRepo;
+    private final RefreshTokenRepository refreshTokenRepo;
     private final VerificationCodeGenerator verificationCodeGenerator;
     private final ResendEmailService resendEmailService;
     private final PasswordEncoder passwordEncoder;
@@ -54,13 +55,14 @@ public class AuthService {
                 .build();
 
         // Save verification token
-        verificationRepository.save(userVerification);
+        verificationRepo.save(userVerification);
 
         // Send email verification code to user
         resendEmailService.sendVerificationEmail(email, code);
         return true;
     }
 
+    @Transactional
     public TokenResponse loginUser(@Valid LoginRequest request) {
         // Authenticate email and password
         authenticationManager.authenticate(
@@ -68,34 +70,62 @@ public class AuthService {
         );
 
         UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(request.getEmail());
-        String accessToken = jwtUtil.generateAccessToken(userDetails);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-        return new TokenResponse("Login successful", accessToken, refreshToken);
+
+        // Issue token and return response
+        return issueTokens(userDetails, "Login Successful");
     }
 
     public TokenResponse refreshToken(String refreshToken) {
-        UUID userId = jwtUtil.generateUserIdFromToken(refreshToken);  //refresh token is valid
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new JwtException("Invalid token"));
+        // Hash the raw refresh token
+        String tokenHash = jwtUtil.hashToken(refreshToken);
+
+        RefreshToken stored = refreshTokenRepo.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new JwtException("Invalid refresh token"));
+
+        User user = userRepo.findById(stored.getUserId())
+                .orElseThrow(() -> new JwtException("Invalid refresh token"));
+
+        // Reuse detected
+        if (!stored.isValid()) {
+            if (stored.isUsed()) {
+                refreshTokenRepo.deleteByFamilyId(stored.getFamilyId()); // nuke family
+            }
+            throw new JwtException("Invalid refresh token");
+        }
+
+        // Mark current token as used
+        stored.setUsed(true);
+        refreshTokenRepo.save(stored);
+
+        // Issue new refresh token of same family
+        String newRefreshToken = UUID.randomUUID().toString();
+        RefreshToken newToken = RefreshToken.builder()
+                .tokenHash(jwtUtil.hashToken(newRefreshToken))
+                .userId(stored.getUserId())
+                .familyId(stored.getFamilyId())
+                .expiresAt(LocalDateTime.now().plusDays(30))
+                .build();
+        refreshTokenRepo.save(newToken);
 
         UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(user.getEmail());
-
         String accessToken = jwtUtil.generateAccessToken(userDetails);
 
-        return new TokenResponse("Token refreshed", accessToken, refreshToken);
+        return new TokenResponse("Token refreshed", accessToken, newRefreshToken);
     }
 
     public TokenResponse registerAndVerify(RegisterUserRequest request) {
-        UserVerification userVerification = verificationRepository
+        // Fetch the latest verification code for the requested mail
+        UserVerification userVerification = verificationRepo
                 .findFirstByEmailOrderByExpiresAtDesc(request.getEmail())
                 .orElseThrow(() -> new InvalidVerificationCode("Invalid verification code! Try again"));
 
+        // Check if code is valid
         if (userVerification.getVerificationCode().equals(request.getVerificationCode())
                 && userVerification.getExpiresAt().isAfter(LocalDateTime.now())
         ) {
             // Delete all verification codes for the requested email when verified
-            List<UserVerification> userVerificationList = verificationRepository.findAllByEmail(request.getEmail());
-            verificationRepository.deleteAll(userVerificationList);
+            List<UserVerification> userVerificationList = verificationRepo.findAllByEmail(request.getEmail());
+            verificationRepo.deleteAll(userVerificationList);
 
             User newUser = new User(
                     request.getName(),
@@ -112,11 +142,26 @@ public class AuthService {
             );
 
             UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(request.getEmail());
-            String accessToken = jwtUtil.generateAccessToken(userDetails);
-            String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
-            return new TokenResponse("User registered successfully", accessToken, refreshToken);
+            // Issue token and return response
+            return issueTokens(userDetails, "User registered successfully");
         }
         throw new InvalidVerificationCode("Invalid verification code! Try again");
+    }
+
+    private TokenResponse issueTokens(UserPrincipal userDetails, String message) {
+        String accessToken = jwtUtil.generateAccessToken(userDetails);
+        String refreshToken = UUID.randomUUID().toString();
+
+        RefreshToken token = RefreshToken.builder()
+                .tokenHash(jwtUtil.hashToken(refreshToken))
+                .userId(userDetails.getUserId())
+                .familyId(UUID.randomUUID())
+                .expiresAt(LocalDateTime.now().plusDays(30))
+                .build();
+
+        refreshTokenRepo.save(token);
+
+        return new TokenResponse(message, accessToken, refreshToken);
     }
 }
