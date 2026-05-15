@@ -3,14 +3,30 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
+import api from "@/lib/api";
 
 export function Navbar() {
-  const { user, logout } = useAuthStore();
+  const { user, accessToken, logout } = useAuthStore();
   const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
-    router.push("/auth/login");
+  const handleLogout = async () => {
+    try {
+      await api.post(
+        "/auth/logout",
+        {},
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      logout();
+      router.push("/auth/login");
+    }
   };
 
   return (
