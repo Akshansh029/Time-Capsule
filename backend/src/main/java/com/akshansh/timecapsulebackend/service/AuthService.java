@@ -149,6 +149,13 @@ public class AuthService {
         throw new InvalidVerificationCode("Invalid verification code! Try again");
     }
 
+    @Transactional
+    public void logout(String refreshToken){
+        String tokenHash = jwtUtil.hashToken(refreshToken);
+
+        refreshTokenRepo.deleteByTokenHash(tokenHash);
+    }
+
     private TokenResponse issueTokens(UserPrincipal userDetails, String message) {
         String accessToken = jwtUtil.generateAccessToken(userDetails);
         String refreshToken = UUID.randomUUID().toString();
