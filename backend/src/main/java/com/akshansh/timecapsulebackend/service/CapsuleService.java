@@ -115,7 +115,7 @@ public class CapsuleService {
                     throw new ResourceNotFoundException("Invitee not found: " + m.getUserEmail());
                 }
 
-                if(invitee == currentUser){
+                if(invitee.getId().equals(currentUser.getId())){
                     throw new InvalidRequestException("User cannot add themselves as capsule member");
                 }
             }

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -22,7 +24,7 @@ public class JwtUtil {
     @Value("${jwt.issuer}")
     private String jwtIssuer;
 
-    private final long ACCESS_EXPIRY_MS = 1000 * 60 * 15;      // 15 mins
+    private final long ACCESS_EXPIRY_MS = 1000 * 60 * 10;      // 10 mins
     private final long REFRESH_EXPIRY_MS = 1000L * 60 * 60 * 24 * 30;      // 30 days
 
     @PostConstruct
@@ -84,6 +86,21 @@ public class JwtUtil {
             return true;
         } catch (JwtException e){
             return false;
+        }
+    }
+
+    // SHA-256 hash utility
+    public String hashToken(String rawToken) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hashBytes) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 not available", e);
         }
     }
 }

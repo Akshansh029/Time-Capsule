@@ -72,7 +72,7 @@ public class AuthController {
                         .secure(true)
                         .path("/")
                         .maxAge(30 * 24 * 60 * 60) // 30 days
-                        .sameSite("None") // Required if frontend/backend are on different subdomains
+                        .sameSite("None") // Required as frontend/backend are on different subdomains
                         .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -95,7 +95,10 @@ public class AuthController {
                     content = @Content(schema = @Schema())),
     })
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refreshToken(HttpServletRequest request){
+    public ResponseEntity<LoginResponse> refreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ){
         if(request.getCookies() == null){
             throw new ResourceNotFoundException("Refresh token not found in cookies");
         }
@@ -106,6 +109,17 @@ public class AuthController {
                 .map(Cookie::getValue)
                 .orElseThrow(()-> new AuthenticationServiceException("RefreshToken not found"));
         TokenResponse loginResponseDto = authService.refreshToken(refreshToken);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", loginResponseDto.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(30 * 24 * 60 * 60) // 30 days
+                .sameSite("None")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
         return ResponseEntity.status(HttpStatus.OK).body(
                 LoginResponse.builder()
                         .message(loginResponseDto.getMessage())
@@ -144,5 +158,38 @@ public class AuthController {
             .message(registerAndVerifyResp.getMessage())
             .accessToken(registerAndVerifyResp.getAccessToken())
             .build());
+    }
+
+    @Operation(summary = "Logout the user", description = "Delete refreshToken from database and clear browser cookies")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "No Content",
+                    content = @Content(schema = @Schema()))
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+
+        String refreshToken = Arrays.stream(request.getCookies()) //getCookies() method returns a array of cookie
+                .filter(cookie -> "refreshToken".equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElseThrow(()-> new AuthenticationServiceException("RefreshToken not found"));
+
+        // delete refreshToken from DB
+        authService.logout(refreshToken);
+
+        // Clear refreshToken from browser cookies
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        return ResponseEntity.noContent().build();
     }
 }
