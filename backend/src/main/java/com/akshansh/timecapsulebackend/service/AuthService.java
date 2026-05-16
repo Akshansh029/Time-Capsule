@@ -21,7 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,7 +52,7 @@ public class AuthService {
         UserVerification userVerification = UserVerification.builder()
                 .email(email)
                 .verificationCode(code)
-                .expiresAt(LocalDateTime.now().plusMinutes(2))
+                .expiresAt(Instant.now().plus(2, ChronoUnit.MINUTES))
                 .build();
 
         // Save verification token
@@ -104,7 +105,7 @@ public class AuthService {
                 .tokenHash(jwtUtil.hashToken(newRefreshToken))
                 .userId(stored.getUserId())
                 .familyId(stored.getFamilyId())
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build();
         refreshTokenRepo.save(newToken);
 
@@ -123,7 +124,7 @@ public class AuthService {
 
         // Check if code is valid
         if (userVerification.getVerificationCode().equals(request.getVerificationCode())
-                && userVerification.getExpiresAt().isAfter(LocalDateTime.now())
+                && userVerification.getExpiresAt().isAfter(Instant.now())
         ) {
             // Delete all verification codes for the requested email when verified
             List<UserVerification> userVerificationList = verificationRepo.findAllByEmail(request.getEmail());
@@ -133,7 +134,7 @@ public class AuthService {
                     request.getName(),
                     request.getEmail(),
                     passwordEncoder.encode(request.getPassword()),
-                    LocalDateTime.now()
+                    Instant.now()
             );
 
             userRepo.save(newUser);
@@ -166,7 +167,7 @@ public class AuthService {
                 .tokenHash(jwtUtil.hashToken(refreshToken))
                 .userId(userDetails.getUserId())
                 .familyId(UUID.randomUUID())
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build();
 
         refreshTokenRepo.save(token);

@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -20,5 +20,5 @@ public class CapsuleContentDto {
     private String fileUrl;     // null if type is TEXT
     private String preAssignedUrl;     // null if type is TEXT
     private String addedByName;
-    private LocalDateTime addedAt;
+    private Instant addedAt;
 }

@@ -131,15 +131,6 @@ const CreateCapsulePage = () => {
     }
   }, [selectedTime, currentUnlockDate, setValue]);
 
-  const formatLocalDateTime = (date: Date) => {
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-      date.getDate(),
-    )}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-      date.getSeconds(),
-    )}`;
-  };
-
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -221,7 +212,7 @@ const CreateCapsulePage = () => {
     try {
       const formattedData = {
         ...data,
-        unlockDate: formatLocalDateTime(data.unlockDate),
+        unlockDate: data.unlockDate.toISOString(),
         contents: data.contents.map((content) => ({
           type: content.type,
           body: content.type === "TEXT" ? content.body : undefined,

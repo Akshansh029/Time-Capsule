@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 import static com.akshansh.timecapsulebackend.util.SlugUtil.generateSlug;
@@ -64,7 +64,7 @@ public class CapsuleMapper {
                 .unlockDate(request.getUnlockDate())
                 .isPrivate(request.getIsPrivate())
                 .owner(owner)
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
     }
 
@@ -82,7 +82,7 @@ public class CapsuleMapper {
 
         dto.setDescription(capsule.getDescription());
         dto.setDaysUntilUnlock(
-                ChronoUnit.DAYS.between(LocalDateTime.now(), capsule.getUnlockDate())
+                ChronoUnit.DAYS.between(Instant.now(), capsule.getUnlockDate())
         );
         return dto;
     }
@@ -110,6 +110,7 @@ public class CapsuleMapper {
 
     private void mapBase(Capsule capsule, CapsuleDto dto) {
         dto.setId(capsule.getId());
+        dto.setSlug(capsule.getSlug());
         dto.setTitle(capsule.getTitle());
         dto.setStatus(capsule.getStatus());
         dto.setUnlockDate(capsule.getUnlockDate());

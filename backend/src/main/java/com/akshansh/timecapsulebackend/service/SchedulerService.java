@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Component
@@ -29,14 +29,14 @@ public class SchedulerService {
     @Scheduled(fixedDelay = 60000)      // runs every 60 secs
     public void unlockDueCapsules(){
         List<Capsule> dueCapsules = capsuleRepository
-                .findAllDueCapsulesWithDetails(LocalDateTime.now());
+                .findAllDueCapsulesWithDetails(Instant.now());
 
 
         for(Capsule capsule : dueCapsules){
             capsule.setStatus(CapsuleStatus.UNLOCKED);
             capsuleRepository.save(capsule);
 
-            log.info("Capsule: {}, unlocked from scheduler at: {}", capsule.getSlug(), LocalDateTime.now());
+            log.info("Capsule: {}, unlocked from scheduler at: {}", capsule.getSlug(), Instant.now());
 
             // Send emails to capsule members
             resendEmailService.sendUnlockNotification(capsule);
@@ -46,7 +46,7 @@ public class SchedulerService {
     @Transactional
     @Scheduled(fixedDelay = (1000L * 60 * 60 * 6))        // runs every 6 hours
     public void deleteExpiredVerificationCodes(){
-        List<UserVerification> expiredCodes = userVerificationRepository.findAllByExpiresAtBefore(LocalDateTime.now());
+        List<UserVerification> expiredCodes = userVerificationRepository.findAllByExpiresAtBefore(Instant.now());
 
         userVerificationRepository.deleteAll(expiredCodes);
         log.info("SCHEDULER: Deleted all expired codes in UserVerification table");
@@ -55,7 +55,7 @@ public class SchedulerService {
     @Transactional
     @Scheduled(cron = "0 0 3 * * *")
     public void deleteExpiredRefreshTokens(){
-        refreshTokenRepo.deleteByExpiresAtBefore(LocalDateTime.now());
+        refreshTokenRepo.deleteByExpiresAtBefore(Instant.now());
         log.info("SCHEDULER: Delete all expired refresh tokens in Refresh Token table");
     }
 }

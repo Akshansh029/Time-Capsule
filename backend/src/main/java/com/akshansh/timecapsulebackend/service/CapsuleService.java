@@ -20,7 +20,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.*;
 
 import static com.akshansh.timecapsulebackend.util.UserUtil.getCurrentUser;
@@ -77,7 +77,7 @@ public class CapsuleService {
     public CapsuleDto createCapsule(CreateCapsuleRequest request){
         UUID currentUserId = getCurrentUser().getUserId();
 
-        if(request.getUnlockDate().isBefore(LocalDateTime.now())){
+        if(request.getUnlockDate().isBefore(Instant.now())){
             throw new UnlockDatePassedException("Invalid unlock date");
         }
 
@@ -100,7 +100,7 @@ public class CapsuleService {
                                 .encryptionIv(encryptedBody.iv())
                                 .fileUrl(c.getFileUrl())
                                 .addedBy(userRepo.getReferenceById(currentUserId))
-                                .addedAt(LocalDateTime.now())
+                                .addedAt(Instant.now())
                                 .build();
                     })
                     .toList();
@@ -170,6 +170,7 @@ public class CapsuleService {
         return new PageImpl<>(pageContent, pageable, memberOf.size());
     }
 
+    @Transactional
     public CapsuleDto getCapsuleDetails(String slug) {
         UUID currentUserId = getCurrentUser().getUserId();
 
@@ -179,7 +180,7 @@ public class CapsuleService {
         validateAccess(capsule, currentUserId);
 
         if (capsule.getStatus() == CapsuleStatus.LOCKED && 
-            capsule.getUnlockDate().isBefore(LocalDateTime.now())) {
+            capsule.getUnlockDate().isBefore(Instant.now())) {
             capsule.setStatus(CapsuleStatus.UNLOCKED);
             capsuleRepo.save(capsule);
         }
@@ -276,7 +277,7 @@ public class CapsuleService {
             content.setBody(encryptedBody.cipherText());
             content.setEncryptionIv(encryptedBody.iv());
             content.setFileUrl(contentDto.getFileUrl());
-            content.setAddedAt(LocalDateTime.now());
+            content.setAddedAt(Instant.now());
 
             capsuleContentRepo.save(content);
             contents.add(content);

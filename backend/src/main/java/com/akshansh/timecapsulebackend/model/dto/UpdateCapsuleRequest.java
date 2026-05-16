@@ -4,7 +4,7 @@ import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 public class UpdateCapsuleRequest {
@@ -14,5 +14,5 @@ public class UpdateCapsuleRequest {
     @Size(max = 100, message = "Description can be maximum of 1000 characters")
     private String description;
 
-    private LocalDateTime unlockDate;
+    private Instant unlockDate;
 }

@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +27,7 @@ public class CreateCapsuleRequest {
     private String description;
 
     @NotNull(message = "Unlock date cannot be null")
-    private LocalDateTime unlockDate;
+    private Instant unlockDate;
 
     @NotNull(message = "Public/Private should be specified")
     private Boolean isPrivate;

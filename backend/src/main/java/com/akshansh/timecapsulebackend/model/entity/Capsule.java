@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnTransformer;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.*;
 
 @Entity
@@ -48,13 +48,13 @@ public class Capsule {
 
     @NotNull(message = "Unlock date cannot be null")
     @Column(name = "unlock_date", nullable = false)
-    private LocalDateTime unlockDate;
+    private Instant unlockDate;
 
     @Column(name = "is_private", nullable = false)
     private boolean isPrivate;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

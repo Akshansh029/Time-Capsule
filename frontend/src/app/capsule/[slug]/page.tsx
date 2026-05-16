@@ -77,30 +77,33 @@ const CapsuleDetailsPage = () => {
   const isContributor =
     isOwner || capsule?.capsuleMembers?.some((m) => m.email === user?.email);
 
-  const fetchCapsule = async (isBackground = false) => {
-    try {
-      if (!isBackground) setIsLoading(true);
-      const response = await api.get(`/capsules/${slug}`);
+  const fetchCapsule = React.useCallback(
+    async (isBackground = false) => {
+      try {
+        if (!isBackground) setIsLoading(true);
+        const response = await api.get(`/capsules/${slug}`);
 
-      setCapsule(response.data);
-      setError(null);
-    } catch (err: any) {
-      console.error("Failed to fetch capsule:", err);
+        setCapsule(response.data);
+        setError(null);
+      } catch (err: any) {
+        console.error("Failed to fetch capsule:", err);
 
-      setError(
-        err.response?.data?.message || "Failed to retrieve the artifact.",
-      );
-    } finally {
-      if (!isBackground) setIsLoading(false);
-    }
-  };
+        setError(
+          err.response?.data?.message || "Failed to retrieve the artifact.",
+        );
+      } finally {
+        if (!isBackground) setIsLoading(false);
+      }
+    },
+    [slug],
+  );
 
   const openEditModal = () => {
     setEditData({
       title: capsule?.title || "",
       description: capsule?.description || "",
-      unlockDate: capsule?.unlockDate?.length
-        ? capsule.unlockDate.slice(0, 16)
+      unlockDate: capsule?.unlockDate
+        ? format(new Date(capsule.unlockDate), "yyyy-MM-dd'T'HH:mm")
         : "",
     });
     setIsEditOpen(true);
@@ -112,7 +115,7 @@ const CapsuleDetailsPage = () => {
       const payload: UpdateCapsuleRequest = {
         title: editData.title,
         description: editData.description,
-        unlockDate: `${editData.unlockDate}:00`, // pad seconds
+        unlockDate: new Date(editData.unlockDate).toISOString(),
       };
 
       await api.put(`/capsules/${slug}`, payload);
@@ -250,6 +253,10 @@ const CapsuleDetailsPage = () => {
       fetchCapsule();
     }
   }, [slug]);
+
+  const handleUnlock = React.useCallback(() => {
+    fetchCapsule(true);
+  }, [fetchCapsule]);
 
   if (isLoading) {
     return (
@@ -409,7 +416,7 @@ const CapsuleDetailsPage = () => {
               <div className="w-full max-w-2xl pt-4">
                 <CapsuleCountdown
                   unlockDate={capsule.unlockDate}
-                  onUnlock={() => fetchCapsule(true)}
+                  onUnlock={handleUnlock}
                 />
               </div>
             </div>

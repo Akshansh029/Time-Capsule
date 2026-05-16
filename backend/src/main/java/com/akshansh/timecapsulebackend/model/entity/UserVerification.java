@@ -3,7 +3,7 @@ package com.akshansh.timecapsulebackend.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -26,5 +26,5 @@ public class UserVerification {
     private String verificationCode;
 
     @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 }

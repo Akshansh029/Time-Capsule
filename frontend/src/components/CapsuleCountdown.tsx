@@ -34,7 +34,23 @@ const CapsuleCountdown: React.FC<CapsuleCountdownProps> = ({
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft());
 
+  const hasTriggeredRef = React.useRef(false);
+
   useEffect(() => {
+    const initial = calculateTimeLeft();
+    if (
+      initial.days === 0 &&
+      initial.hours === 0 &&
+      initial.minutes === 0 &&
+      initial.seconds === 0
+    ) {
+      if (onUnlock && !hasTriggeredRef.current) {
+        hasTriggeredRef.current = true;
+        onUnlock();
+      }
+      return;
+    }
+
     const timer = setInterval(() => {
       const remaining = calculateTimeLeft();
       setTimeLeft(remaining);
@@ -46,12 +62,19 @@ const CapsuleCountdown: React.FC<CapsuleCountdownProps> = ({
         remaining.seconds === 0
       ) {
         clearInterval(timer);
-        if (onUnlock) onUnlock();
+        if (onUnlock && !hasTriggeredRef.current) {
+          hasTriggeredRef.current = true;
+          onUnlock();
+        }
       }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [unlockDate, calculateTimeLeft, onUnlock]);
+  }, [calculateTimeLeft, onUnlock]);
+
+  useEffect(() => {
+    hasTriggeredRef.current = false;
+  }, [unlockDate]);
 
   const TimeUnit = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center">

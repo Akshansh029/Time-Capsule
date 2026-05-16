@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,7 +52,7 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
 """)
     Optional<Capsule> findBySlugWithMembersAndUsers(@Param("slug") String slug);
 
-    List<Capsule> findAllByStatusAndUnlockDateBefore(CapsuleStatus status, LocalDateTime unlockDateBefore);
+    List<Capsule> findAllByStatusAndUnlockDateBefore(CapsuleStatus status, Instant unlockDateBefore);
 
     @Query("""
     SELECT c FROM Capsule c
@@ -62,5 +62,5 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
     WHERE c.status = 'LOCKED'
     AND c.unlockDate < :now
 """)
-    List<Capsule> findAllDueCapsulesWithDetails(@Param("now") LocalDateTime now);
+    List<Capsule> findAllDueCapsulesWithDetails(@Param("now") Instant now);
 }

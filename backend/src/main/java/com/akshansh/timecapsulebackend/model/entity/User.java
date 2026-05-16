@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,7 +47,7 @@ public class User {
     private String passwordHash;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @JsonIgnore
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -64,7 +64,7 @@ public class User {
     @ToString.Exclude
     private List<CapsuleMember> memberList;
 
-    public User(String name, String email, String passwordHash, LocalDateTime now) {
+    public User(String name, String email, String passwordHash, Instant now) {
         this.name = name;
         this.email = email;
         this.passwordHash = passwordHash;

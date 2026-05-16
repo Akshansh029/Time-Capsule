@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.ColumnTransformer;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -52,5 +52,5 @@ public class CapsuleContent {
     private User addedBy;
 
     @Column(name = "added_at", nullable = false)
-    private LocalDateTime addedAt;
+    private Instant addedAt;
 }
