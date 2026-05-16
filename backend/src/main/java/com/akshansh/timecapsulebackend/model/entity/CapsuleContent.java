@@ -39,6 +39,9 @@ public class CapsuleContent {
     @Column(name = "body", nullable = true)
     private String body;
 
+    @Column(name = "encryption_iv", nullable = true)
+    private String encryptionIv;
+
     @Column(name = "file_url", nullable = true)
     private String fileUrl;
 

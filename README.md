@@ -21,6 +21,7 @@
 - [Getting Started](#getting-started)
 - [Configuration](configuration)
 - [Security](#security)
+- [Database Schema](#database-schema)
 - [How to Contribute?](#how-to-contribute)
 - [What's Next?](#️what's-next)
 - [Author](#author)
@@ -35,10 +36,12 @@ In an era of instant gratification, **Time Capsule** encourages slow, intentiona
 - **Custodian Network**: Invite collaborators to contribute to your capsule or viewers to wait for its reveal.
 - **Multimedia Support**: Attach text, high-quality images, and files to your memory vault.
 - **Smart Notifications**: Receive automated email notifications the moment a capsule unlocks.
-- **Secure Persistence**: Stateless authentication with JWT ensures your memories are for your eyes only.
+- **Secure Persistence**: Stateless authentication with Hybrid JWT Approach ensures your memories are for your eyes only.
 - **Public Vaults**: Explore public time capsules shared by the owners to you.
 - **File Encryption**: AES-128 archival encryption applied at source node.
 - **Responsive Design**: A fluid, glassmorphic UI optimized for both desktop and mobile.
+- **File Storage**: Secure file storage using Amazon S3.
+- **Interactive Documentation**: Interactive API documentation using Swagger UI.
 
 ## Tech Stack
 
@@ -163,10 +166,14 @@ time-capsule/
 
 ## Security
 
-- **JWT Authentication**: Secure, stateless user sessions.
+- **Hybrid JWT Authentication**: Access tokens + Stored Refresh tokens in DB. Secure, stateless user sessions.
 - **Resource Privacy**: Capsules are protected at the data layer; locked content is inaccessible until the unlock date passes.
 - **Role-Based Access**: Granular control via `OWNER`, `CONTRIBUTOR`, and `VIEWER` roles.
 - **Input Sanitization**: Strictly validated payloads using Zod and Spring Validation.
+
+## Database Schema
+
+![Database schema](/public/db_schema.png)
 
 ## How to Contribute?
 

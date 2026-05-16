@@ -2,6 +2,7 @@ package com.akshansh.timecapsulebackend.mapper;
 
 import com.akshansh.timecapsulebackend.model.dto.*;
 import com.akshansh.timecapsulebackend.model.entity.*;
+import com.akshansh.timecapsulebackend.service.AesEncryptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ public class CapsuleMapper {
     private String bucketName;
 
     private final S3Presigner s3Presigner;
+    private final AesEncryptionService aesEncryptionService;
 
     private static final Duration PRESIGN_DURATION = Duration.ofMinutes(30);
 
@@ -119,9 +121,10 @@ public class CapsuleMapper {
 
     private CapsuleContentDto toContentDto(CapsuleContent content) {
         CapsuleContentDto dto = new CapsuleContentDto();
+
         dto.setId(content.getId());
         dto.setType(content.getType());
-        dto.setBody(content.getBody());
+        dto.setBody(aesEncryptionService.decrypt(content.getBody(), content.getEncryptionIv()));
         dto.setFileUrl(content.getFileUrl());
         dto.setPreAssignedUrl(content.getFileUrl() != null ? generatePresignedUrl(content.getFileUrl(), PRESIGN_DURATION) : null);
         dto.setAddedByName(content.getAddedBy().getName());

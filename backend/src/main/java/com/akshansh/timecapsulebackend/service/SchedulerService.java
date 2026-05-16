@@ -4,6 +4,7 @@ import com.akshansh.timecapsulebackend.model.entity.Capsule;
 import com.akshansh.timecapsulebackend.model.entity.CapsuleStatus;
 import com.akshansh.timecapsulebackend.model.entity.UserVerification;
 import com.akshansh.timecapsulebackend.repository.CapsuleRepository;
+import com.akshansh.timecapsulebackend.repository.RefreshTokenRepository;
 import com.akshansh.timecapsulebackend.repository.UserVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +18,11 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class CapsuleSchedulerService {
+public class SchedulerService {
 
     private final CapsuleRepository capsuleRepository;
     private final UserVerificationRepository userVerificationRepository;
+    private final RefreshTokenRepository refreshTokenRepo;
     private final ResendEmailService resendEmailService;
 
     @Transactional
@@ -48,5 +50,12 @@ public class CapsuleSchedulerService {
 
         userVerificationRepository.deleteAll(expiredCodes);
         log.info("SCHEDULER: Deleted all expired codes in UserVerification table");
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 0 3 * * *")
+    public void deleteExpiredRefreshTokens(){
+        refreshTokenRepo.deleteByExpiresAtBefore(LocalDateTime.now());
+        log.info("SCHEDULER: Delete all expired refresh tokens in Refresh Token table");
     }
 }
