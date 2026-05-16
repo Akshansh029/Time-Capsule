@@ -574,7 +574,7 @@ const CapsuleDetailsPage = () => {
                           Cryptographic Integrity
                         </p>
                         <p className="text-[10px] text-muted-foreground mt-0.5">
-                          AES-256 archival encryption applied at source node.
+                          AES-128 archival encryption applied at source node.
                         </p>
                       </div>
                     </div>

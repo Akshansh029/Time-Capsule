@@ -37,6 +37,7 @@ In an era of instant gratification, **Time Capsule** encourages slow, intentiona
 - **Smart Notifications**: Receive automated email notifications the moment a capsule unlocks.
 - **Secure Persistence**: Stateless authentication with JWT ensures your memories are for your eyes only.
 - **Public Vaults**: Explore public time capsules shared by the owners to you.
+- **File Encryption**: AES-128 archival encryption applied at source node.
 - **Responsive Design**: A fluid, glassmorphic UI optimized for both desktop and mobile.
 
 ## Tech Stack
