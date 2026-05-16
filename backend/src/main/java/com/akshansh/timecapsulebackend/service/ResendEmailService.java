@@ -13,13 +13,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @Slf4j
 public class ResendEmailService {
+    private static final DateTimeFormatter EMAIL_DATE_FORMATTER = 
+            DateTimeFormatter.ofPattern("MMMM dd, yyyy, hh:mm a 'UTC'")
+                    .withZone(ZoneId.of("UTC"))
+                    .withLocale(Locale.ENGLISH);
 
     private final Resend resend;
 
@@ -105,8 +112,7 @@ public class ResendEmailService {
 
     private String buildEmailBody(Capsule capsule) {
         String capsuleUrl = frontendUrl + "/capsule/" + capsule.getSlug();
-        String unlockedDate = capsule.getUnlockDate()
-                .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
+        String unlockedDate = EMAIL_DATE_FORMATTER.format(capsule.getUnlockDate());
 
         return """
                 <!DOCTYPE html>
@@ -206,8 +212,7 @@ public class ResendEmailService {
 
     private String buildInviteEmailBody(Capsule capsule, String invitedBy, String inviteeRole) {
         String capsuleUrl = frontendUrl + "/capsule/" + capsule.getSlug();
-        String unlockDate = capsule.getUnlockDate()
-                .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
+        String unlockDate = EMAIL_DATE_FORMATTER.format(capsule.getUnlockDate());
 
         return """
             <!DOCTYPE html>
