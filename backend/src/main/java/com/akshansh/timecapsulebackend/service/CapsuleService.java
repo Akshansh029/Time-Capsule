@@ -35,6 +35,7 @@ public class CapsuleService {
     private final CapsuleContentRepo capsuleContentRepo;
     private final CapsuleMapper capsuleMapper;
     private final ResendEmailService resendEmailService;
+    private final AesEncryptionService aesEncryptionService;
 
     private boolean isOwner(Capsule capsule, UUID currentUserId){
         return capsule.getOwner().getId().equals(currentUserId);
@@ -90,14 +91,18 @@ public class CapsuleService {
         // Save the contents
         if(request.getContents() != null && !request.getContents().isEmpty()){
             List<CapsuleContent> contents = request.getContents().stream()
-                    .map(c -> CapsuleContent.builder()
-                            .capsule(newCapsule)
-                            .type(c.getType())
-                            .body(c.getBody())
-                            .fileUrl(c.getFileUrl())
-                            .addedBy(userRepo.getReferenceById(currentUserId))
-                            .addedAt(LocalDateTime.now())
-                            .build())
+                    .map(c -> {
+                        AesEncryptionService.EncryptedValue encryptedBody = aesEncryptionService.encrypt(c.getBody());
+                        return CapsuleContent.builder()
+                                .capsule(newCapsule)
+                                .type(c.getType())
+                                .body(encryptedBody.cipherText())
+                                .encryptionIv(encryptedBody.iv())
+                                .fileUrl(c.getFileUrl())
+                                .addedBy(userRepo.getReferenceById(currentUserId))
+                                .addedAt(LocalDateTime.now())
+                                .build();
+                    })
                     .toList();
             capsuleContentRepo.saveAll(contents);
         } else{
@@ -260,13 +265,16 @@ public class CapsuleService {
         }
 
         List<CapsuleContent> contents = new ArrayList<>();
+
         for(AddContentRequestDto contentDto : request){
             CapsuleContent content = new CapsuleContent();
+            AesEncryptionService.EncryptedValue encryptedBody = aesEncryptionService.encrypt(contentDto.getBody());
 
             content.setCapsule(capsule);
             content.setAddedBy(requester);
             content.setType(contentDto.getType());
-            content.setBody(contentDto.getBody());
+            content.setBody(encryptedBody.cipherText());
+            content.setEncryptionIv(encryptedBody.iv());
             content.setFileUrl(contentDto.getFileUrl());
             content.setAddedAt(LocalDateTime.now());
 
