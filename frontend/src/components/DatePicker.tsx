@@ -95,6 +95,9 @@ const DatePicker = ({ date, setDate, error }: DatePickerProps) => {
               selected={date}
               month={month}
               onMonthChange={setMonth}
+              captionLayout="dropdown"
+              startMonth={new Date()}
+              endMonth={new Date(new Date().getFullYear() + 50, 11)}
               disabled={(date) =>
                 date < new Date(new Date().setHours(0, 0, 0, 0))
               }

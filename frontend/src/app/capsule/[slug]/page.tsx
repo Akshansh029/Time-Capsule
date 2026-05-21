@@ -661,6 +661,24 @@ const CapsuleDetailsPage = () => {
                 </div>
 
                 <div className="space-y-6">
+                  {/* Security Notice */}
+                  <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 flex gap-4 animate-in fade-in slide-in-from-top-4 duration-1000 delay-300">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 border border-primary/20">
+                      <Shield className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+                        Access Protocol: Active
+                      </p>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed max-w-xl">
+                        For cryptographic security, decrypted archival imagery
+                        and files are temporarily visible for a duration of 30
+                        minutes. We recommend downloading any artifacts for
+                        permanent inclusion in your personal records.
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between px-2">
                     <div className="space-y-1">
                       <h3 className="text-sm uppercase tracking-[0.2em] font-bold text-primary/80">
