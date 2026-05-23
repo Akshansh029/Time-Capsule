@@ -3,7 +3,7 @@ package com.akshansh.timecapsulebackend.service;
 import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
 import com.akshansh.timecapsulebackend.mapper.UserMapper;
 import com.akshansh.timecapsulebackend.model.dto.ActiveUserResponse;
-import com.akshansh.timecapsulebackend.model.dto.UpdateUserRequestDto;
+import com.akshansh.timecapsulebackend.model.dto.UpdateUsernameRequestDto;
 import com.akshansh.timecapsulebackend.model.dto.UserDto;
 import com.akshansh.timecapsulebackend.model.entity.User;
 import com.akshansh.timecapsulebackend.model.entity.UserPrincipal;
@@ -46,9 +46,9 @@ public class UserService {
             cacheNames = USER_CACHE,
             key = "T(com.akshansh.timecapsulebackend.util.UserUtil).getCurrentUser().getUserId()"
     )
-    public UserDto updateUser(UpdateUserRequestDto request){
+    public UserDto updateUser(UpdateUsernameRequestDto request){
         UUID currentUserId = getCurrentUser().getUserId();
-        log.info("Updating user with email: {}", request.getEmail());
+        log.info("Updating user with id: {}", currentUserId);
 
         User currentUser = userRepo.findById(currentUserId)
                 .orElseThrow(() -> {
@@ -58,9 +58,6 @@ public class UserService {
 
         if(Objects.nonNull(request.getName()) && !"".equalsIgnoreCase(request.getName())){
             currentUser.setName(request.getName());
-        }
-        if(Objects.nonNull(request.getEmail()) && !"".equalsIgnoreCase(request.getEmail())){
-            currentUser.setName(request.getEmail());
         }
 
         // Save updated user
