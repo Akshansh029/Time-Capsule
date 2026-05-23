@@ -128,24 +128,26 @@ const DashboardPage = () => {
             </div>
 
             <div className="pt-8 border-t border-white/5">
-              <div className="glass p-5 rounded-2xl flex flex-col gap-3 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-[40px] rounded-full -mr-8 -mt-8" />
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-primary tracking-widest">
-                      {initials}
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {user?.name}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">
-                      {user?.email}
-                    </p>
+              <Link href="/profile" className="block group">
+                <div className="glass p-5 rounded-2xl flex flex-col gap-3 relative overflow-hidden transition-all duration-300 group-hover:bg-white/5 group-hover:scale-[1.02] border border-transparent group-hover:border-primary/20">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-[40px] rounded-full -mr-8 -mt-8 transition-all group-hover:bg-primary/10" />
+                  <div className="flex items-center gap-3 relative z-10">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0 transition-all group-hover:border-primary/50 group-hover:bg-primary/30">
+                      <span className="text-xs font-bold text-primary tracking-widest">
+                        {initials}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                        {user?.name}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">
+                        {user?.email}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
           </aside>
 

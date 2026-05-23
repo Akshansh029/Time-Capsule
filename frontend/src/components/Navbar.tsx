@@ -53,6 +53,14 @@ export function Navbar() {
               Dashboard
             </Link>
           )}
+          {user && (
+            <Link
+              href="/profile"
+              className="text-sm font-medium hover:text-primary transition-colors uppercase tracking-widest text-muted-foreground mr-4"
+            >
+              Profile
+            </Link>
+          )}
           {!user ? (
             <>
               <Link href="/auth/login">
@@ -64,7 +72,7 @@ export function Navbar() {
                 </Button>
               </Link>
               <Link href="/auth/register">
-                <Button className="gold-gradient text-primary-foreground hover:opacity-90 uppercase tracking-widest text-xs font-bold px-6">
+                <Button className="gold-gradient text-primary-foreground hover:opacity-90 uppercase tracking-widest text-xs font-bold px-6 ml-4">
                   Invoke Chronos
                 </Button>
               </Link>
