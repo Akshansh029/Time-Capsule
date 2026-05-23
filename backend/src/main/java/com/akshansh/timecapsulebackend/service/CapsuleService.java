@@ -14,7 +14,6 @@ import com.akshansh.timecapsulebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -165,7 +164,8 @@ public class CapsuleService {
             key = "{T(com.akshansh.timecapsulebackend.util.UserUtil).getCurrentUser().getUserId(), " +
                     "#pageNo, " +
                     "#pageSize, " +
-                    "#search}")
+                    "#search}"
+    )
     public Page<CapsuleDto> getAllCapsulesForUser(int pageNo, int pageSize, String search){
         UUID currentUserId = getCurrentUser().getUserId();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
@@ -259,6 +259,7 @@ public class CapsuleService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CAPSULE_LIST_CACHE, allEntries = true)
     public void deleteCapsule(String slug){
         UUID currentUserId = getCurrentUser().getUserId();
 
