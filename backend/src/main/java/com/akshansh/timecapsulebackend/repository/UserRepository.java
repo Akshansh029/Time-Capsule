@@ -16,7 +16,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     // Fetch active user details
     @Query("SELECT new com.akshansh.timecapsulebackend.model.dto.ActiveUserResponse(" +
-            "u.id, u.name, u.email, u.createdAt) " +
+            "u.id, u.name, u.email, u.createdAt, SIZE(u.ownedCapsules), SIZE(u.ownedContents), SIZE(u.memberList)) " +
             "FROM User u WHERE u.id = :userId")
     ActiveUserResponse findActiveUserDetails(UUID userId);
 

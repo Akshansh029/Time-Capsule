@@ -63,7 +63,7 @@ public class UserService {
 
         // Save updated user
         userRepo.save(currentUser);
-        log.info("Successfully updated the user with ID: {}", currentUserId);
+        log.info("Successfully updated the username with ID: {}", currentUserId);
         return userMapper.toDto(currentUser);
     }
 
@@ -81,6 +81,7 @@ public class UserService {
                     return new ResourceNotFoundException("User not found");
                 });
 
+        log.info("Successfully delete user with ID: {}", currentUserId);
         userRepo.delete(currentUser);
     }
 }
