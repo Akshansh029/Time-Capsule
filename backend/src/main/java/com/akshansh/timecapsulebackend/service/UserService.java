@@ -43,7 +43,7 @@ public class UserService {
     }
 
     @Transactional
-    @CachePut(
+    @CacheEvict(
             cacheNames = USER_CACHE,
             key = "T(com.akshansh.timecapsulebackend.util.UserUtil).getCurrentUser().getUserId()"
     )
@@ -82,9 +82,5 @@ public class UserService {
                 });
 
         userRepo.delete(currentUser);
-    }
-
-    public List<UserDto> searchUsers(String q) {
-        return userRepo.findByNameContainingOrEmailContaining(q, q);
     }
 }
