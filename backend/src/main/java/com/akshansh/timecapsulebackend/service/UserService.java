@@ -5,21 +5,28 @@ import com.akshansh.timecapsulebackend.model.dto.UserDto;
 import com.akshansh.timecapsulebackend.model.entity.UserPrincipal;
 import com.akshansh.timecapsulebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import static com.akshansh.timecapsulebackend.util.UserUtil.getCurrentUser;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepo;
 
+    @Cacheable(
+            cacheNames = "userDetails",
+            key = "T(com.akshansh.timecapsulebackend.util.UserUtil).getCurrentUser().getUserId()")
     public ActiveUserResponse getActiveUserDetails() {
         UserPrincipal currentUser = getCurrentUser();
 
+        log.info("Successfully fetched user details from DB for user: {}", currentUser.getUserId());
         return userRepo.findActiveUserDetails(currentUser.getUserId());
     }
 
