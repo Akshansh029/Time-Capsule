@@ -17,4 +17,7 @@ public class ActiveUserResponse {
     private String name;
     private String email;
     private Instant createdAt;
+    private int noOfOwnedCapsules;
+    private int noOfOwnedContents;
+    private int noOfMemberOfCapsules;
 }
