@@ -13,6 +13,8 @@ import com.akshansh.timecapsulebackend.repository.CapsuleRepository;
 import com.akshansh.timecapsulebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -39,6 +41,7 @@ public class CapsuleService {
     private final CapsuleMapper capsuleMapper;
     private final ResendEmailService resendEmailService;
     private final AesEncryptionService aesEncryptionService;
+    private final String CAPSULE_LIST_CACHE = "capsulesList";
 
     private boolean isOwner(Capsule capsule, UUID currentUserId){
         return capsule.getOwner().getId().equals(currentUserId);
@@ -55,10 +58,12 @@ public class CapsuleService {
 
     private void validateAccess(Capsule capsule, UUID requesterId) {
         if (capsule.isPrivate() && !isOwner(capsule, requesterId)) {
+            log.error("Capsule: {} is private", capsule.getId());
             throw new AccessDeniedException("This capsule is private");
         }
 
         if (!capsule.isPrivate() && !isOwner(capsule, requesterId) && !isMember(capsule.getId(), requesterId)) {
+            log.error("User: {} is not a member of capsule: {}", requesterId, capsule.getId());
             throw new AccessDeniedException("You are not a member of this capsule");
         }
     }
@@ -77,15 +82,21 @@ public class CapsuleService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CAPSULE_LIST_CACHE, allEntries = true)
     public CapsuleDto createCapsule(CreateCapsuleRequest request){
+        log.info("Creating new capsule with title: {}", request.getTitle());
         UUID currentUserId = getCurrentUser().getUserId();
 
         if(request.getUnlockDate().isBefore(Instant.now())){
+            log.error("Invalid unlock date");
             throw new UnlockDatePassedException("Invalid unlock date");
         }
 
         User currentUser = userRepo.findById(currentUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    log.error("User not found");
+                    return new ResourceNotFoundException("User not found");
+                });
 
         // Save new capsule
         Capsule newCapsule = capsuleMapper.toEntity(request, currentUser);
@@ -109,6 +120,7 @@ public class CapsuleService {
                     .toList();
             capsuleContentRepo.saveAll(contents);
         } else{
+            log.error("Cannot create capsule without content");
             throw new InvalidRequestException("Cannot create capsule without content");
         }
 
@@ -120,10 +132,12 @@ public class CapsuleService {
                 User invitee = userRepo.findByEmail(m.getUserEmail());
 
                 if(invitee == null){
+                    log.error("Invitee not found: {}", m.getUserEmail());
                     throw new ResourceNotFoundException("Invitee not found: " + m.getUserEmail());
                 }
 
                 if(invitee.getId().equals(currentUser.getId())){
+                    log.error("User cannot add themselves as capsule member");
                     throw new InvalidRequestException("User cannot add themselves as capsule member");
                 }
             }
@@ -142,11 +156,12 @@ public class CapsuleService {
             }
         }
 
+        log.info("Successfully create capsule with title: {}", newCapsule.getTitle());
         return capsuleMapper.toDto(newCapsule);
     }
 
     @Cacheable(
-            cacheNames = "capsulesForUser",
+            cacheNames = CAPSULE_LIST_CACHE,
             key = "{T(com.akshansh.timecapsulebackend.util.UserUtil).getCurrentUser().getUserId(), " +
                     "#pageNo, " +
                     "#pageSize, " +
@@ -156,10 +171,11 @@ public class CapsuleService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
         if(search == null || search.isBlank()){
+            log.info("Successfully fetched capsules for user: {}", currentUserId);
             return capsuleRepo.findAllCapsules(pageable, currentUserId);
         }
 
-        log.info("Successfully fetched capsule from DB for user: {}", currentUserId);
+        log.info("Successfully fetched capsules with search for user: {}", currentUserId);
         return capsuleRepo.findAllCapsulesWithSearch(pageable, currentUserId, search);
     }
 
@@ -204,19 +220,24 @@ public class CapsuleService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CAPSULE_LIST_CACHE, allEntries = true)
     public CapsuleDto updateCapsule(UpdateCapsuleRequest request, String slug){
+        log.info("Updating capsule with slug: {}", slug);
         UUID currentUserId = getCurrentUser().getUserId();
 
         Capsule capsule = capsuleRepo.findBySlug(slug);
 
         if(capsule == null){
+            log.error("Capsule with slug: {} not found", slug);
             throw new ResourceNotFoundException("Capsule not found");
         }
 
         if (!isOwner(capsule, currentUserId)) {
+            log.error("User with id: {} do not have access to capsule: {}", currentUserId, slug);
             throw new AccessDeniedException("You do not have access to this capsule");
         }
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
+            log.error("Capsule with slug: {} already unlocked", slug);
             throw new CapsuleAlreadyUnlockedException("Capsule already unlocked");
         }
 
@@ -233,6 +254,7 @@ public class CapsuleService {
 
         // Save the updated capsule
         capsuleRepo.save(capsule);
+        log.info("Successfully updated capsule with slug: {}", slug);
         return capsuleMapper.toDto(capsule);
     }
 
