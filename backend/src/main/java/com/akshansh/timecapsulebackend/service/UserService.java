@@ -10,6 +10,7 @@ import com.akshansh.timecapsulebackend.model.entity.UserPrincipal;
 import com.akshansh.timecapsulebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -52,7 +53,7 @@ public class UserService {
 
         User currentUser = userRepo.findById(currentUserId)
                 .orElseThrow(() -> {
-                    log.error("User not found");
+                    log.error("User with ID: {} not found", currentUserId);
                     return new ResourceNotFoundException("User not found");
                 });
 
@@ -64,6 +65,23 @@ public class UserService {
         userRepo.save(currentUser);
         log.info("Successfully updated the user with ID: {}", currentUserId);
         return userMapper.toDto(currentUser);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = USER_CACHE,
+            key = "T(com.akshansh.timecapsulebackend.util.UserUtil).getCurrentUser().getUserId()"
+    )
+    public void deleteUser(){
+        UUID currentUserId = getCurrentUser().getUserId();
+        log.info("Deleting user with id: {}", currentUserId);
+
+        User currentUser = userRepo.findById(currentUserId)
+                .orElseThrow(() -> {
+                    log.error("User with ID: {} not found", currentUserId);
+                    return new ResourceNotFoundException("User not found");
+                });
+
+        userRepo.delete(currentUser);
     }
 
     public List<UserDto> searchUsers(String q) {
