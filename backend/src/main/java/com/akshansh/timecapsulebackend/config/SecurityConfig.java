@@ -1,5 +1,6 @@
 package com.akshansh.timecapsulebackend.config;
 
+import com.akshansh.timecapsulebackend.filter.RequestLoggingFilter;
 import com.akshansh.timecapsulebackend.security.JwtAuthFilter;
 import com.akshansh.timecapsulebackend.util.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final UserDetailsService userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
+    private final RequestLoggingFilter requestLoggingFilter;
 
     // AuthProvider
     @Bean
@@ -69,6 +71,7 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(requestLoggingFilter, JwtAuthFilter.class)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint));
 
