@@ -8,14 +8,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.UUID;
 
 @Component
@@ -43,10 +41,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-            String userId =
-                    extractUserIdFromSecurityContext() != null
-                            ? Objects.requireNonNull(extractUserIdFromSecurityContext()).getUserId().toString()
-                            : "anonymous";
+            String userId = extractUserIdFromSecurityContext();
             log.info("OUT method={} uri={} status={} userId={} duration={}ms",
                     request.getMethod(),
                     request.getRequestURI(),
@@ -57,9 +52,17 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         }
     }
 
-    private UserPrincipal extractUserIdFromSecurityContext() {
+    private String extractUserIdFromSecurityContext() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) return null;
-        return (UserPrincipal) auth.getPrincipal();
+        if (auth == null || !auth.isAuthenticated()) {
+            return "anonymous";
+        }
+
+        Object principal = auth.getPrincipal();
+        if (principal instanceof UserPrincipal userPrincipal) {
+            return userPrincipal.getUserId().toString();
+        }
+
+        return auth.getName();
     }
 }

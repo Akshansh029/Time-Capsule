@@ -14,6 +14,7 @@ import com.akshansh.timecapsulebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -41,6 +42,7 @@ public class CapsuleService {
     private final ResendEmailService resendEmailService;
     private final AesEncryptionService aesEncryptionService;
     private final String CAPSULE_LIST_CACHE = "capsulesList";
+    private final String CAPSULE_DETAILS_CACHE = "capsuleDetails";
 
     private boolean isOwner(Capsule capsule, UUID currentUserId){
         return capsule.getOwner().getId().equals(currentUserId);
@@ -196,6 +198,10 @@ public class CapsuleService {
         return new PageImpl<>(pageContent, pageable, memberOf.size());
     }
 
+    @Cacheable(
+            cacheNames = CAPSULE_DETAILS_CACHE,
+            key = "{T(com.akshansh.timecapsulebackend.util.UserUtil).getCurrentUser().getUserId(), #slug}"
+    )
     @Transactional
     public CapsuleDto getCapsuleDetails(String slug) {
         UUID currentUserId = getCurrentUser().getUserId();
@@ -220,6 +226,10 @@ public class CapsuleService {
     }
 
     @Transactional
+    @CachePut(
+            cacheNames = CAPSULE_DETAILS_CACHE,
+            key = "{T(com.akshansh.timecapsulebackend.util.UserUtil).getCurrentUser().getUserId(), #slug}"
+    )
     @CacheEvict(cacheNames = CAPSULE_LIST_CACHE, allEntries = true)
     public CapsuleDto updateCapsule(UpdateCapsuleRequest request, String slug){
         log.info("Updating capsule with slug: {}", slug);
