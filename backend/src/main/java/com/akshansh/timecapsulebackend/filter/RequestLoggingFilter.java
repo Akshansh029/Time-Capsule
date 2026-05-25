@@ -1,5 +1,6 @@
 package com.akshansh.timecapsulebackend.filter;
 
+import com.akshansh.timecapsulebackend.model.entity.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.UUID;
 
 @Component
@@ -41,7 +43,10 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-            String userId = extractUserIdFromSecurityContext();
+            String userId =
+                    extractUserIdFromSecurityContext() != null
+                            ? Objects.requireNonNull(extractUserIdFromSecurityContext()).getUserId().toString()
+                            : "anonymous";
             log.info("OUT method={} uri={} status={} userId={} duration={}ms",
                     request.getMethod(),
                     request.getRequestURI(),
@@ -52,9 +57,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         }
     }
 
-    private String extractUserIdFromSecurityContext() {
+    private UserPrincipal extractUserIdFromSecurityContext() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) return "anonymous";
-        return auth.getName();
+        if (auth == null || !auth.isAuthenticated()) return null;
+        return (UserPrincipal) auth.getPrincipal();
     }
 }
