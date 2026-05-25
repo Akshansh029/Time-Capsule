@@ -16,7 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
-@Order(1)
+@Component
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(RequestLoggingFilter.class);
@@ -38,17 +38,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 request.getRequestURI(),
                 request.getRemoteAddr());
 
-        filterChain.doFilter(request, response);
-
-        log.info("OUT status={} uri={} duration={}ms",
-                response.getStatus(),
-                request.getRequestURI(),
-                System.currentTimeMillis() - start);
-
         try {
-            filterChain.doFilter(request, response); // JwtAuthFilter runs here, SecurityContext gets populated
+            filterChain.doFilter(request, response);
         } finally {
-            // OUT — logged after full chain, userId now available
             String userId = extractUserIdFromSecurityContext();
             log.info("OUT method={} uri={} status={} userId={} duration={}ms",
                     request.getMethod(),

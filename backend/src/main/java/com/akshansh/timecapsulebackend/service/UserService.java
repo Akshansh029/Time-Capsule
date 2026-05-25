@@ -38,7 +38,7 @@ public class UserService {
     public ActiveUserResponse getActiveUserDetails() {
         UserPrincipal currentUser = getCurrentUser();
 
-        log.info("Successfully fetched user details from DB for user: {}", currentUser.getUserId());
+        log.info("Successfully fetched user details for user: {}", currentUser.getUserId());
         return userRepo.findActiveUserDetails(currentUser.getUserId());
     }
 
