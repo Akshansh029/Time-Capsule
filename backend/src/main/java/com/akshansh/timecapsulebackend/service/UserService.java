@@ -53,7 +53,7 @@ public class UserService {
 
         User currentUser = userRepo.findById(currentUserId)
                 .orElseThrow(() -> {
-                    log.error("User with ID: {} not found", currentUserId);
+                    log.warn("User with ID: {} not found", currentUserId);
                     return new ResourceNotFoundException("User not found");
                 });
 

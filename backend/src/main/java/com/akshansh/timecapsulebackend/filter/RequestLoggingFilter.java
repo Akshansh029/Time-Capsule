@@ -27,21 +27,23 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+        String userId = extractUserIdFromSecurityContext();
         String requestId = UUID.randomUUID().toString().substring(0, 8);
         long start = System.currentTimeMillis();
 
         // requestId so every log line in this thread carries it
         MDC.put("requestId", requestId);
+        MDC.put("userId", userId);
 
-        log.info("IN  method={} uri={} ip={}",
+        log.info("IN  method={} uri={} userId= {} ip={}",
                 request.getMethod(),
                 request.getRequestURI(),
+                userId,
                 request.getRemoteAddr());
 
         try {
             filterChain.doFilter(request, response);
         } finally {
-            String userId = extractUserIdFromSecurityContext();
             log.info("OUT method={} uri={} status={} userId={} duration={}ms",
                     request.getMethod(),
                     request.getRequestURI(),
