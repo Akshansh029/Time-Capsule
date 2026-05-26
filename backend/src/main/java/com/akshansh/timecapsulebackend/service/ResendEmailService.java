@@ -9,6 +9,7 @@ import com.resend.services.emails.model.CreateEmailOptions;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import static com.akshansh.timecapsulebackend.util.LoggingUtil.maskEmail;
 
 @Service
 @Slf4j
@@ -51,10 +54,15 @@ public class ResendEmailService {
 
             resend.emails().send(params);
 
-            log.info("Email verification code SENT to: {}", toEmail);
+            log.info("event=verificationCodeEmailSent userId={}", MDC.get("userId"));
         } catch (ResendException e) {
-            log.error("Failed to send code verification email to {}: {}", toEmail, e.getMessage());
-            throw new ResendEmailException("Failed to send verification email: " + e.getMessage());
+            log.error("event=verificationEmailFailed userId={} recipient={} provider=Resend status={} message=\"{}\"",
+                    MDC.get("userId"),
+                    maskEmail(toEmail),
+                    e.getStatusCode(),
+                    e.getMessage(), e
+            );
+            throw new ResendEmailException("Failed to send verification email");
         }
     }
 
@@ -68,9 +76,15 @@ public class ResendEmailService {
                     .build();
 
             resend.emails().send(params);
-            log.info("Invitation email SENT to: {}", toEmail);
+            log.info("event=invitationEmailSent userId={}", MDC.get("userId"));
         } catch(ResendException e){
-            log.error("Failed to send invitation email to {}: {}", toEmail, e.getMessage());
+            log.error("event=invitationEmailFailed userId={} recipient={} provider=Resend errorCode={} message=\"{}\"",
+                    MDC.get("userId"),
+                    maskEmail(toEmail),
+                    e.getStatusCode(),
+                    e.getMessage(),
+                    e
+            );
             throw new ResendEmailException("Failed to send invitation email: " + e.getMessage());
         }
     }
@@ -94,9 +108,15 @@ public class ResendEmailService {
                         .build();
 
                 resend.emails().send(params);
-                log.info("SENT unlock notification for capsule: {} to email: {}", capsule.getSlug(), email);
+                log.info("event=unlockNotificationEmailSent userId={}", MDC.get("userId"));
             } catch (ResendException e) {
-                log.error("Failed to send unlock email to {}: {}", email, e.getMessage());
+                log.error("event=unlockNotificationEmailFailed userId={} recipient={} provider=Resend errorCode={} message=\"{}\"",
+                        MDC.get("userId"),
+                        maskEmail(email),
+                        e.getStatusCode(),
+                        e.getMessage(),
+                        e
+                );
                 throw new ResendEmailException("Failed to send unlock notification email: " + e.getMessage());
             }
         }

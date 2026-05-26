@@ -16,6 +16,9 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+
+import static com.akshansh.timecapsulebackend.util.UserUtil.getCurrentUser;
 
 @Service
 @RequiredArgsConstructor
@@ -26,9 +29,11 @@ public class FileService {
     private String bucketName;
 
     private final S3Client s3Client;
+    private final UUID currentUserId = getCurrentUser().getUserId();
 
     @Transactional
     public String uploadFile(MultipartFile multipartFile) throws IOException {
+
         String originalFilename = multipartFile.getOriginalFilename() != null
                 ? multipartFile.getOriginalFilename().replace(" ", "_") : "file";
         String key = new Date().getTime() + "_" + originalFilename;
@@ -43,7 +48,7 @@ public class FileService {
         // Without an explicit contentLength, fromInputStream() will throw an error
         s3Client.putObject(request,
                 RequestBody.fromInputStream(multipartFile.getInputStream(), multipartFile.getSize()));
-        log.info("File upload is completed.");
+        log.info("event=fileUploadedToS3 userId={} fileKey={}", currentUserId, key);
         return key;
     }
 
@@ -60,28 +65,25 @@ public class FileService {
                     .build();
 
             try (ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(request)) {
-                log.info("File downloaded successfully.");
+                log.info("event=fileDownloadedFromS3 userId={} fileKey={}", currentUserId, key);
                 return s3Object.readAllBytes();
             }
 
         } catch (NoSuchKeyException e) {
-            log.warn("Resource not found with key: {}", key);
             throw new ResourceNotFoundException("Resource not found with key: " + key);
         } catch (IOException e) {
-            log.warn("Download failed:", e);
-            throw new FileDownloadException("Download failed: " + e);
+            throw new FileDownloadException("Download failed: " + e.getMessage());
         }
     }
 
     @Transactional
     public void deleteFile(final String keyName) {
-        log.info("Deleting file with name= {}", keyName);
         final DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
                 .key(keyName)
                 .build();
         s3Client.deleteObject(deleteObjectRequest);
-        log.info("File deleted successfully.");
+        log.info("event=fileDeletedFromS3 userId={} fileKey={}", currentUserId, keyName);
     }
 
     private boolean bucketIsEmpty() {

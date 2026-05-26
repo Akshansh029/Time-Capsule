@@ -420,13 +420,6 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI()
         );
-        log.error("Server error event=resendEmailFailure status=500 method={} uri={} errorType={} message=\"{}\" requestId={}",
-                request.getMethod(),
-                request.getRequestURI(),
-                ex.getClass().getSimpleName(),
-                ex.getMessage(),
-                MDC.get("requestId")
-        );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
