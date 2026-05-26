@@ -116,9 +116,10 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI()
         );
-        log.warn("Client error event=userAlreadyExists status=400 method={} uri={} errorType={} message=\"{}\" requestId={}",
+        log.warn("Client error event=userAlreadyExists status=400 method={} uri={} userId={} errorType={} message=\"{}\" requestId={}",
                 request.getMethod(),
                 request.getRequestURI(),
+                MDC.get("userId"),
                 ex.getClass().getSimpleName(),
                 ex.getMessage(),
                 MDC.get("requestId")
@@ -188,9 +189,10 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI()
         );
-        log.warn("Client error event=jwtException status=401 method={} uri={} errorType={} message=\"{}\" requestId={}",
+        log.warn("Client error event=jwtException status=401 method={} uri={} userId={} errorType={} message=\"{}\" requestId={}",
                 request.getMethod(),
                 request.getRequestURI(),
+                MDC.get("userId"),
                 ex.getClass().getSimpleName(),
                 ex.getMessage(),
                 MDC.get("requestId")
@@ -380,7 +382,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI()
         );
-        log.warn("Server error event=fileDownload status=500 method={} uri={} errorType={} message=\"{}\" requestId={}",
+        log.error("Server error event=fileDownload status=500 method={} uri={} errorType={} message=\"{}\" requestId={}",
                 request.getMethod(),
                 request.getRequestURI(),
                 ex.getClass().getSimpleName(),
@@ -417,7 +419,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI()
         );
-        log.warn("Server error event=resendEmailFailure status=500 method={} uri={} errorType={} message=\"{}\" requestId={}",
+        log.error("Server error event=resendEmailFailure status=500 method={} uri={} errorType={} message=\"{}\" requestId={}",
                 request.getMethod(),
                 request.getRequestURI(),
                 ex.getClass().getSimpleName(),
@@ -435,7 +437,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI()
         );
-        log.warn("Server error event=runtimeError status=500 method={} uri={} userId={} errorType={} message=\"{}\" requestId={}",
+        log.error("Server error event=runtimeError status=500 method={} uri={} userId={} errorType={} message=\"{}\" requestId={}",
                 request.getMethod(),
                 request.getRequestURI(),
                 MDC.get("userId"),
@@ -454,7 +456,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI()
         );
-        log.warn("Server error event=unexpectedError status=500 method={} uri={} userId={} errorType={} message=\"{}\" requestId={}",
+        log.error("Server error event=unexpectedError status=500 method={} uri={} userId={} errorType={} message=\"{}\" requestId={}",
                 request.getMethod(),
                 request.getRequestURI(),
                 MDC.get("userId"),

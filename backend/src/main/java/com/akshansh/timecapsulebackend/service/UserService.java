@@ -38,7 +38,7 @@ public class UserService {
     public ActiveUserResponse getActiveUserDetails() {
         UserPrincipal currentUser = getCurrentUser();
 
-        log.info("Successfully fetched user details for user: {}", currentUser.getUserId());
+        log.info("Successfully fetched user details userId={}", currentUser.getUserId());
         return userRepo.findActiveUserDetails(currentUser.getUserId());
     }
 
@@ -49,13 +49,11 @@ public class UserService {
     )
     public UserDto updateUser(UpdateUsernameRequestDto request){
         UUID currentUserId = getCurrentUser().getUserId();
-        log.info("Updating user with id: {}", currentUserId);
+        log.info("Updating username userId={}", currentUserId);
 
         User currentUser = userRepo.findById(currentUserId)
-                .orElseThrow(() -> {
-                    log.warn("User with ID: {} not found", currentUserId);
-                    return new ResourceNotFoundException("User not found");
-                });
+                .orElseThrow(() ->
+                     new ResourceNotFoundException("User " + currentUserId + " not found"));
 
         if(Objects.nonNull(request.getName()) && !"".equalsIgnoreCase(request.getName())){
             currentUser.setName(request.getName());
@@ -63,7 +61,7 @@ public class UserService {
 
         // Save updated user
         userRepo.save(currentUser);
-        log.info("Successfully updated the username with ID: {}", currentUserId);
+        log.info("Successfully updated the username userId={}", currentUserId);
         return userMapper.toDto(currentUser);
     }
 
@@ -73,15 +71,12 @@ public class UserService {
     )
     public void deleteUser(){
         UUID currentUserId = getCurrentUser().getUserId();
-        log.info("Deleting user with id: {}", currentUserId);
+        log.info("Deleting user userId={}", currentUserId);
 
         User currentUser = userRepo.findById(currentUserId)
-                .orElseThrow(() -> {
-                    log.error("User with ID: {} not found", currentUserId);
-                    return new ResourceNotFoundException("User not found");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("User " + currentUserId + " not found"));
 
-        log.info("Successfully delete user with ID: {}", currentUserId);
+        log.info("Successfully deleted user userId={}", currentUserId);
         userRepo.delete(currentUser);
     }
 }
