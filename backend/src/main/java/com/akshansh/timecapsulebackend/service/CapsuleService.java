@@ -59,13 +59,11 @@ public class CapsuleService {
 
     private void validateAccess(Capsule capsule, UUID requesterId) {
         if (capsule.isPrivate() && !isOwner(capsule, requesterId)) {
-            log.error("Capsule: {} is private", capsule.getId());
-            throw new AccessDeniedException("This capsule is private");
+            throw new AccessDeniedException("Capsule " + capsule.getId() + " is private");
         }
 
         if (!capsule.isPrivate() && !isOwner(capsule, requesterId) && !isMember(capsule.getId(), requesterId)) {
-            log.error("User: {} is not a member of capsule: {}", requesterId, capsule.getId());
-            throw new AccessDeniedException("You are not a member of this capsule");
+            throw new AccessDeniedException("User " + requesterId + " is not a member of capsule " + capsule.getId());
         }
     }
 
@@ -85,23 +83,24 @@ public class CapsuleService {
     @Transactional
     @CacheEvict(cacheNames = CAPSULE_LIST_CACHE, allEntries = true)
     public CapsuleDto createCapsule(CreateCapsuleRequest request){
-        log.info("Creating new capsule with title: {}", request.getTitle());
         UUID currentUserId = getCurrentUser().getUserId();
 
         if(request.getUnlockDate().isBefore(Instant.now())){
-            log.error("Invalid unlock date");
             throw new UnlockDatePassedException("Invalid unlock date");
         }
 
         User currentUser = userRepo.findById(currentUserId)
-                .orElseThrow(() -> {
-                    log.error("User not found");
-                    return new ResourceNotFoundException("User not found");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         // Save new capsule
         Capsule newCapsule = capsuleMapper.toEntity(request, currentUser);
         capsuleRepo.save(newCapsule);
+        log.info("event=capsuleCreated capsuleId={} userId={} isPrivate={} unlockDate={}",
+                newCapsule.getId(),
+                currentUserId,
+                request.getIsPrivate(),
+                request.getUnlockDate()
+        );
 
         // Save the contents
         if(request.getContents() != null && !request.getContents().isEmpty()){
@@ -120,8 +119,10 @@ public class CapsuleService {
                     })
                     .toList();
             capsuleContentRepo.saveAll(contents);
+            log.info("event=capsuleContentSaved capsuleId={} contentCount={}",
+                    newCapsule.getId(),
+                    contents.size());
         } else{
-            log.error("Cannot create capsule without content");
             throw new InvalidRequestException("Cannot create capsule without content");
         }
 
@@ -133,12 +134,10 @@ public class CapsuleService {
                 User invitee = userRepo.findByEmail(m.getUserEmail());
 
                 if(invitee == null){
-                    log.error("Invitee not found: {}", m.getUserEmail());
                     throw new ResourceNotFoundException("Invitee not found: " + m.getUserEmail());
                 }
 
                 if(invitee.getId().equals(currentUser.getId())){
-                    log.error("User cannot add themselves as capsule member");
                     throw new InvalidRequestException("User cannot add themselves as capsule member");
                 }
             }
@@ -155,9 +154,10 @@ public class CapsuleService {
                 // Send invitation mail
                 resendEmailService.sendInvitationEmail(m.getUserEmail(), m.getRole(), newCapsule, currentUser.getEmail());
             }
+            log.info("event=capsuleMembersInvited capsuleId={} userId={} memberCount={}",
+                newCapsule.getId(), currentUserId, request.getMembers().size());
         }
 
-        log.info("Successfully create capsule with title: {}", newCapsule.getTitle());
         return capsuleMapper.toDto(newCapsule);
     }
 
@@ -168,20 +168,40 @@ public class CapsuleService {
                     "#pageSize, " +
                     "#search}"
     )
-    public Page<CapsuleDto> getAllCapsulesForUser(int pageNo, int pageSize, String search){
+    public Page<CapsuleDto> getAllCapsulesForUser(int pageNo, int pageSize, String search) {
         UUID currentUserId = getCurrentUser().getUserId();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        if(search == null || search.isBlank()){
-            log.info("Successfully fetched capsules for user: {}", currentUserId);
-            return capsuleRepo.findAllCapsules(pageable, currentUserId);
+        if (search == null || search.isBlank()) {
+            Page<CapsuleDto> result = capsuleRepo.findAllCapsules(pageable, currentUserId);
+
+            if (result.getTotalElements() == 0) {
+                log.warn("event=noCapsulesFound userId={} page={} size={}",
+                        currentUserId, pageNo, pageSize);
+            } else {
+                log.info("event=fetchedCapsulesForUser userId={} page={} size={} capsuleCount={} totalPages={}",
+                        currentUserId, pageNo, pageSize,
+                        result.getNumberOfElements(),
+                        result.getTotalPages());
+            }
+
+            return result;
         }
 
-        log.info("Successfully fetched capsules with search for user: {}", currentUserId);
-        return capsuleRepo.findAllCapsulesWithSearch(pageable, currentUserId, search);
+        log.debug("event=capsuleSearchInitiated userId={} searchTerm=\"{}\" page={} size={}",
+                currentUserId, search, pageNo, pageSize);
+
+        Page<CapsuleDto> result = capsuleRepo.findAllCapsulesWithSearch(pageable, currentUserId, search);
+
+        log.info("event=fetchedCapsulesForUserWithSearch userId={} page={} size={} capsuleCount={} totalPages={}",
+                currentUserId, pageNo, pageSize,
+                result.getNumberOfElements(),
+                result.getTotalPages());
+
+        return result;
     }
 
-    public Page<CapsuleDto> getSharedCapsulesForUser(int pageNo, int pageSize, String search){
+    public Page<CapsuleDto> getSharedCapsulesForUser(int pageNo, int pageSize){
         UUID currentUserId = getCurrentUser().getUserId();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
@@ -195,7 +215,10 @@ public class CapsuleService {
         int end = Math.min((start + pageable.getPageSize()), memberOf.size());
 
         List<CapsuleDto> pageContent = memberOf.subList(start, end);
-        return new PageImpl<>(pageContent, pageable, memberOf.size());
+        Page<CapsuleDto> result = new PageImpl<>(pageContent, pageable, memberOf.size());
+        log.info("event=fetchedSharedCapsulesForUser userId={} page={} size={} capsuleCount={} totalPages={}",
+                currentUserId, pageNo, pageSize, result.getTotalElements(), result.getTotalPages());
+        return result;
     }
 
     @Cacheable(
@@ -207,7 +230,7 @@ public class CapsuleService {
         UUID currentUserId = getCurrentUser().getUserId();
 
         Capsule capsule = capsuleRepo.findBySlugWithMembersAndUsers(slug)
-                .orElseThrow(() -> new ResourceNotFoundException("Capsule not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Capsule " + slug + " not found"));
 
         validateAccess(capsule, currentUserId);
 
@@ -215,13 +238,18 @@ public class CapsuleService {
             capsule.getUnlockDate().isBefore(Instant.now())) {
             capsule.setStatus(CapsuleStatus.UNLOCKED);
             capsuleRepo.save(capsule);
+            log.info("event=capsuleUnlocked capsuleId={} userId={} unlockDate={}",
+                    capsule.getId(), currentUserId, capsule.getUnlockDate());
         }
 
         // Return based on status
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
+        log.info("event=fetchedUnlockedCapsule capsuleId={} userId={} status={} unlockDate={}",
+                    capsule.getId(), currentUserId, capsule.getStatus(), capsule.getUnlockDate());
             return capsuleMapper.toUnlockedCapsuleDto(capsule);
         }
-
+        log.info("event=fetchedLockedCapsule capsuleId={} userId={} status={} unlockDate={}",
+                    capsule.getId(), currentUserId, capsule.getStatus(), capsule.getUnlockDate());
         return capsuleMapper.toLockedCapsuleDto(capsule);
     }
 
@@ -232,23 +260,19 @@ public class CapsuleService {
     )
     @CacheEvict(cacheNames = CAPSULE_LIST_CACHE, allEntries = true)
     public CapsuleDto updateCapsule(UpdateCapsuleRequest request, String slug){
-        log.info("Updating capsule with slug: {}", slug);
         UUID currentUserId = getCurrentUser().getUserId();
 
         Capsule capsule = capsuleRepo.findBySlug(slug);
 
         if(capsule == null){
-            log.error("Capsule with slug: {} not found", slug);
-            throw new ResourceNotFoundException("Capsule not found");
+            throw new ResourceNotFoundException("Capsule " + slug + " not found");
         }
 
         if (!isOwner(capsule, currentUserId)) {
-            log.error("User with id: {} do not have access to capsule: {}", currentUserId, slug);
-            throw new AccessDeniedException("You do not have access to this capsule");
+            throw new AccessDeniedException("Only owner can update capsule details");
         }
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
-            log.error("Capsule with slug: {} already unlocked", slug);
-            throw new CapsuleAlreadyUnlockedException("Capsule already unlocked");
+            throw new CapsuleAlreadyUnlockedException("Capsule " + slug + " already unlocked");
         }
 
         // Updates fields if they are not null or empty.
@@ -264,7 +288,8 @@ public class CapsuleService {
 
         // Save the updated capsule
         capsuleRepo.save(capsule);
-        log.info("Successfully updated capsule with slug: {}", slug);
+        log.info("event=capsuleUpdated capsuleId={} userId={} capsuleTitle={} unlockDate={}",
+                capsule.getId(), currentUserId, capsule.getTitle(), capsule.getUnlockDate());
         return capsuleMapper.toDto(capsule);
     }
 
@@ -280,9 +305,10 @@ public class CapsuleService {
         }
 
         if (!isOwner(capsule, currentUserId)) {
-            throw new AccessDeniedException("You do not have access to this capsule");
+            throw new AccessDeniedException("Only owner can delete the capsule");
         }
 
+        log.info("event=capsuleDeleted capsuleId={} userId={}", capsule.getId(), currentUserId);
         capsuleRepo.deleteBySlug(slug);
     }
 

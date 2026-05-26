@@ -62,9 +62,10 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI()
         );
-        log.warn("Client error event=resourceNotFound status=404 method={} uri={} errorType={} message=\"{}\" requestId={}",
+        log.warn("Client error event=resourceNotFound status=404 method={} uri={} userId={} errorType={} message=\"{}\" requestId={}",
                 request.getMethod(),
                 request.getRequestURI(),
+                MDC.get("userId"),
                 ex.getClass().getSimpleName(),
                 ex.getMessage(),
                 MDC.get("requestId")

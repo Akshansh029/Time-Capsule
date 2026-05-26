@@ -44,7 +44,6 @@ public class AuthService {
 
     @Transactional
     public boolean checkEmail(String email) {
-        log.info("Checking user mail: userMail={}", email);
         if(userRepo.existsByEmail(email)){
             throw new UserAlreadyExistsException(
                     "User with email: " + email + " already exists");
@@ -60,6 +59,7 @@ public class AuthService {
 
         // Save verification token
         verificationRepo.save(userVerification);
+        log.info("event=verificationTokenSaved tokenId={}", userVerification.getId());
 
         // Send email verification code to user
         resendEmailService.sendVerificationEmail(email, code);
@@ -68,7 +68,6 @@ public class AuthService {
 
     @Transactional
     public TokenResponse loginUser(@Valid LoginRequest request) {
-        log.info("Attempting login: userMail={}", request.getEmail());
         // Authenticate email and password
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -76,14 +75,13 @@ public class AuthService {
 
         UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(request.getEmail());
 
-        log.info("Login successful: userId={}", userDetails.getUserId());
+        log.info("event=successfulLogin userId={}", userDetails.getUserId());
         // Issue token and return response
         return issueTokens(userDetails, "Login successful");
     }
 
     @Transactional
     public TokenResponse refreshToken(String refreshToken) {
-        log.info("Refreshing token");
         // Hash the raw refresh token
         String tokenHash = jwtUtil.hashToken(refreshToken);
 
@@ -96,7 +94,10 @@ public class AuthService {
         // Reuse detected
         if (!stored.isValid()) {
             if (stored.isUsed()) {
-                log.warn("Refresh token reuse detected: userId={}", stored.getUserId());
+                log.warn("event=refreshTokenReuse userId={} tokenId={}",
+                        stored.getUserId(),
+                        stored.getId()
+                );
                 refreshTokenRepo.deleteByFamilyId(stored.getFamilyId()); // nuke family
             }
             throw new JwtException("Invalid refresh token");
@@ -115,17 +116,17 @@ public class AuthService {
                 .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build();
         refreshTokenRepo.save(newToken);
+        log.info("event=newRefreshTokenCreated tokenId={}", newToken.getId());
 
         UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtUtil.generateAccessToken(userDetails);
 
-        log.info("Token refreshed successfully: userId={}", stored.getUserId());
+        log.info("event=accessTokenRefreshed userId={}", stored.getUserId());
         return new TokenResponse("Token refreshed", accessToken, newRefreshToken);
     }
 
     @Transactional
     public TokenResponse registerAndVerify(RegisterUserRequest request) {
-        log.info("Registering user: userMail={}", request.getEmail());
         // Fetch the latest verification code for the requested mail
         UserVerification userVerification = verificationRepo
                 .findFirstByEmailOrderByExpiresAtDesc(request.getEmail())
@@ -155,7 +156,7 @@ public class AuthService {
 
             UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(request.getEmail());
 
-            log.info("User registered successfully: userId={}", userDetails.getUserId());
+            log.info("event=newUserRegistered userId={}", userDetails.getUserId());
             // Issue token and return response
             return issueTokens(userDetails, "User registered successfully");
         }
@@ -168,7 +169,7 @@ public class AuthService {
         RefreshToken storedRefreshToken = refreshTokenRepo.findByTokenHash(tokenHash)
                         .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found"));
 
-        log.info("User logged out successfully: userId={}", storedRefreshToken.getUserId());
+        log.info("event=userLoggedOut userId={}", storedRefreshToken.getUserId());
         refreshTokenRepo.delete(storedRefreshToken);
     }
 

@@ -38,8 +38,9 @@ public class UserService {
     public ActiveUserResponse getActiveUserDetails() {
         UserPrincipal currentUser = getCurrentUser();
 
-        log.info("Successfully fetched user details userId={}", currentUser.getUserId());
-        return userRepo.findActiveUserDetails(currentUser.getUserId());
+        ActiveUserResponse userResponse = userRepo.findActiveUserDetails(currentUser.getUserId());
+        log.info("event=fetchedActiveUserDetails userId={}", userResponse.getId());
+        return userResponse;
     }
 
     @Transactional
@@ -49,7 +50,6 @@ public class UserService {
     )
     public UserDto updateUser(UpdateUsernameRequestDto request){
         UUID currentUserId = getCurrentUser().getUserId();
-        log.info("Updating username userId={}", currentUserId);
 
         User currentUser = userRepo.findById(currentUserId)
                 .orElseThrow(() ->
@@ -61,7 +61,7 @@ public class UserService {
 
         // Save updated user
         userRepo.save(currentUser);
-        log.info("Successfully updated the username userId={}", currentUserId);
+        log.info("event=usernameUpdated userId={}", currentUserId);
         return userMapper.toDto(currentUser);
     }
 
@@ -71,12 +71,11 @@ public class UserService {
     )
     public void deleteUser(){
         UUID currentUserId = getCurrentUser().getUserId();
-        log.info("Deleting user userId={}", currentUserId);
 
         User currentUser = userRepo.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User " + currentUserId + " not found"));
 
-        log.info("Successfully deleted user userId={}", currentUserId);
+        log.info("event=userDeleted userId={}", currentUserId);
         userRepo.delete(currentUser);
     }
 }

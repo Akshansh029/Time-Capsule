@@ -69,10 +69,9 @@ public class CapsuleController {
     @GetMapping("/shared")
     public ResponseEntity<Page<CapsuleDto>> getSharedCapsulesForUser(
             @RequestParam(defaultValue = "0", required = false) int pageNo,
-            @RequestParam(defaultValue = "10", required = false) int pageSize,
-            @RequestParam(required = false) String search
+            @RequestParam(defaultValue = "10", required = false) int pageSize
     ){
-        Page<CapsuleDto> sharedCapsules = capsuleService.getSharedCapsulesForUser(pageNo, pageSize, search);
+        Page<CapsuleDto> sharedCapsules = capsuleService.getSharedCapsulesForUser(pageNo, pageSize);
         return ResponseEntity.status(HttpStatus.OK).body(sharedCapsules);
     }
 
