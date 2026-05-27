@@ -1,6 +1,7 @@
 package com.akshansh.timecapsulebackend.service;
 
 import com.akshansh.timecapsulebackend.exception.InvalidVerificationCode;
+import com.akshansh.timecapsulebackend.exception.ResourceNotFoundException;
 import com.akshansh.timecapsulebackend.exception.UserAlreadyExistsException;
 import com.akshansh.timecapsulebackend.model.dto.*;
 import com.akshansh.timecapsulebackend.model.entity.RefreshToken;
@@ -15,6 +16,7 @@ import com.akshansh.timecapsulebackend.util.VerificationCodeGenerator;
 import io.jsonwebtoken.JwtException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +28,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -41,7 +44,6 @@ public class AuthService {
 
     @Transactional
     public boolean checkEmail(String email) {
-
         if(userRepo.existsByEmail(email)){
             throw new UserAlreadyExistsException(
                     "User with email: " + email + " already exists");
@@ -57,6 +59,7 @@ public class AuthService {
 
         // Save verification token
         verificationRepo.save(userVerification);
+        log.info("event=verificationTokenSaved tokenId={}", userVerification.getId());
 
         // Send email verification code to user
         resendEmailService.sendVerificationEmail(email, code);
@@ -72,8 +75,9 @@ public class AuthService {
 
         UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(request.getEmail());
 
+        log.info("event=successfulLogin userId={}", userDetails.getUserId());
         // Issue token and return response
-        return issueTokens(userDetails, "Login Successful");
+        return issueTokens(userDetails, "Login successful");
     }
 
     @Transactional
@@ -90,6 +94,10 @@ public class AuthService {
         // Reuse detected
         if (!stored.isValid()) {
             if (stored.isUsed()) {
+                log.warn("event=refreshTokenReuse userId={} tokenId={}",
+                        stored.getUserId(),
+                        stored.getId()
+                );
                 refreshTokenRepo.deleteByFamilyId(stored.getFamilyId()); // nuke family
             }
             throw new JwtException("Invalid refresh token");
@@ -108,10 +116,12 @@ public class AuthService {
                 .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build();
         refreshTokenRepo.save(newToken);
+        log.info("event=newRefreshTokenCreated tokenId={}", newToken.getId());
 
         UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtUtil.generateAccessToken(userDetails);
 
+        log.info("event=accessTokenRefreshed userId={}", stored.getUserId());
         return new TokenResponse("Token refreshed", accessToken, newRefreshToken);
     }
 
@@ -146,6 +156,7 @@ public class AuthService {
 
             UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(request.getEmail());
 
+            log.info("event=newUserRegistered userId={}", userDetails.getUserId());
             // Issue token and return response
             return issueTokens(userDetails, "User registered successfully");
         }
@@ -155,8 +166,11 @@ public class AuthService {
     @Transactional
     public void logout(String refreshToken){
         String tokenHash = jwtUtil.hashToken(refreshToken);
+        RefreshToken storedRefreshToken = refreshTokenRepo.findByTokenHash(tokenHash)
+                        .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found"));
 
-        refreshTokenRepo.deleteByTokenHash(tokenHash);
+        log.info("event=userLoggedOut userId={}", storedRefreshToken.getUserId());
+        refreshTokenRepo.delete(storedRefreshToken);
     }
 
     private TokenResponse issueTokens(UserPrincipal userDetails, String message) {

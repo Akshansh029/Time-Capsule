@@ -36,7 +36,8 @@ public class SchedulerService {
             capsule.setStatus(CapsuleStatus.UNLOCKED);
             capsuleRepository.save(capsule);
 
-            log.info("Capsule: {}, unlocked from scheduler at: {}", capsule.getSlug(), Instant.now());
+            log.info("event=capsuleUnlockedFromScheduler capsuleId={} unlockDate={}",
+                    capsule.getId(), capsule.getUnlockDate());
 
             // Send emails to capsule members
             resendEmailService.sendUnlockNotification(capsule);
@@ -49,13 +50,13 @@ public class SchedulerService {
         List<UserVerification> expiredCodes = userVerificationRepository.findAllByExpiresAtBefore(Instant.now());
 
         userVerificationRepository.deleteAll(expiredCodes);
-        log.info("SCHEDULER: Deleted all expired codes in UserVerification table");
+        log.info("event=expiredVerificationCodesDeleted expiredCodesCount={}", expiredCodes.size());
     }
 
     @Transactional
     @Scheduled(cron = "0 0 3 * * *")
     public void deleteExpiredRefreshTokens(){
         refreshTokenRepo.deleteByExpiresAtBefore(Instant.now());
-        log.info("SCHEDULER: Delete all expired refresh tokens in Refresh Token table");
+        log.info("event=expiredRefreshTokensDeleted");
     }
 }

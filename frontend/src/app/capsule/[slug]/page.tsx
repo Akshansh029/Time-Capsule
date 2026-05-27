@@ -424,8 +424,6 @@ const CapsuleDetailsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
               {/* Left Column: Info */}
               <div className="glass-variant p-10 rounded-[3rem] space-y-8 relative overflow-hidden group border-primary/10">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] -mr-16 -mt-16 rounded-full" />
-
                 <div className="space-y-2">
                   <div className="flex justify-between items-start">
                     <Label className="text-[10px] uppercase tracking-widest text-primary/50 font-bold">
@@ -618,10 +616,8 @@ const CapsuleDetailsPage = () => {
           <div className="space-y-12 animate-in fade-in zoom-in duration-1000">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8">
-                <div className="glass-variant p-8 md:p-12 rounded-[3.5rem] border-primary/20 relative overflow-hidden group min-h-[300px]">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32 rounded-full" />
-
-                  <div className="relative space-y-8">
+                <div className="glass-variant p-8 md:p-10 rounded-[3.5rem] border-primary/20 relative overflow-hidden group min-h-[300px]">
+                  <div className="relative space-y-4">
                     <div className="flex items-center justify-between opacity-50 relative z-10">
                       <div className="flex items-center space-x-4">
                         <div className="h-px w-8 bg-gradient-to-r from-transparent to-primary" />
@@ -630,23 +626,15 @@ const CapsuleDetailsPage = () => {
                         </span>
                         <div className="h-px w-8 bg-gradient-to-l from-transparent to-primary" />
                       </div>
-                      {isOwner && capsule.status === "LOCKED" && (
+                      {isOwner && (
                         <div className="flex space-x-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={openEditModal}
-                            className="w-6 h-6 hover:text-primary transition-colors"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
                             onClick={() => setIsDeleteOpen(true)}
-                            className="w-6 h-6 hover:text-red-500 transition-colors"
+                            className="w-10 h-10 hover:text-red-500 transition-colors"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-5 h-5" />
                           </Button>
                         </div>
                       )}
@@ -991,13 +979,13 @@ const CapsuleDetailsPage = () => {
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteOpen(false)}
-                className="flex-1 rounded-xl border-white/10 hover:bg-white/5"
+                className="flex-1 text-sm py-4 rounded-xl border-white/10 hover:bg-white/5"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleDelete}
-                className="flex-1 bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 rounded-xl"
+                className="flex-1 text-sm py-4 bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 rounded-xl"
                 disabled={isLoading}
               >
                 Confirm Destruction
