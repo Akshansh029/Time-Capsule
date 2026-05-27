@@ -38,10 +38,11 @@ In an era of instant gratification, **Time Capsule** encourages slow, intentiona
 - **Smart Notifications**: Receive automated email notifications the moment a capsule unlocks.
 - **Secure Persistence**: Stateless authentication with Hybrid JWT Approach ensures your memories are for your eyes only.
 - **Public Vaults**: Explore public time capsules shared by the owners to you.
-- **File Encryption**: AES-128 archival encryption applied at source node.
-- **Responsive Design**: A fluid, glassmorphic UI optimized for both desktop and mobile.
 - **File Storage**: Secure file storage using Amazon S3.
+- **File Encryption**: AES-128 archival encryption applied at source node.
+- **Caching and Logging**: Implemented caching and logging to improve performance and debugging.
 - **Interactive Documentation**: Interactive API documentation using Swagger UI.
+- **Responsive Design**: A fluid, glassmorphic UI optimized for both desktop and mobile.
 
 ## Tech Stack
 
@@ -79,7 +80,8 @@ time-capsule/
 │   ├── src/main/java/com/akshansh/timecapsulebackend/
 │   │   ├── config/           # Application & Security configuration
 │   │   ├── controller/       # REST Endpoints
-│   │   ├── exceptions/       # Custom exceptions
+│   │   ├── exception/        # Custom exceptions
+│   │   ├── filter/           # Filters
 │   │   ├── mapper/           # Mapper classes
 │   │   ├── model/            # JPA Entities & DTOs
 │   │   ├── repository/       # Data Access Layer
