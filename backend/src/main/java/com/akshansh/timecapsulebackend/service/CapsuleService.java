@@ -234,6 +234,7 @@ public class CapsuleService {
 
         validateAccess(capsule, currentUserId);
 
+        // If LOCKED and unlock date passed, change the status
         if (capsule.getStatus() == CapsuleStatus.LOCKED && 
             capsule.getUnlockDate().isBefore(Instant.now())) {
             capsule.setStatus(CapsuleStatus.UNLOCKED);
@@ -242,7 +243,6 @@ public class CapsuleService {
                     capsule.getId(), currentUserId, capsule.getUnlockDate());
         }
 
-        // Return based on status
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
         log.info("event=fetchedUnlockedCapsule capsuleId={} userId={} status={} unlockDate={}",
                     capsule.getId(), currentUserId, capsule.getStatus(), capsule.getUnlockDate());
@@ -323,7 +323,7 @@ public class CapsuleService {
         Capsule capsule = capsuleRepo.findBySlug(slug);
 
         if(capsule == null){
-            throw new ResourceNotFoundException("Capsule not found");
+            throw new ResourceNotFoundException("Capsule " + slug + " not found");
         }
 
         validateAccess(capsule, currentUserId);
@@ -331,7 +331,7 @@ public class CapsuleService {
 
         // Can't add content to an already unlocked capsule
         if (capsule.getStatus() == CapsuleStatus.UNLOCKED) {
-            throw new IllegalStateException("Cannot add content to an unlocked capsule");
+            throw new IllegalArgumentException("Cannot add content to an unlocked capsule");
         }
 
         List<CapsuleContent> contents = new ArrayList<>();
@@ -355,6 +355,9 @@ public class CapsuleService {
         // save content and capsule
         capsule.setContents(contents);
         capsuleRepo.save(capsule);
+        log.info("event=capsuleContentsSaved capsuleId={} userId{} contentCount={}",
+                capsule.getId(), currentUserId, contents.size()
+        );
     }
 
     @Transactional
@@ -388,5 +391,8 @@ public class CapsuleService {
         }
 
         capsuleContentRepo.delete(content);
+        log.info("event=contentRemovedFromCapsule capsuleId={} userId={} removedContentId={}",
+                capsule.getId(), currentUserId, contentId
+        );
     }
 }

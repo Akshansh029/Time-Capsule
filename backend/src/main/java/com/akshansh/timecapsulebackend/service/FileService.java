@@ -29,10 +29,10 @@ public class FileService {
     private String bucketName;
 
     private final S3Client s3Client;
-    private final UUID currentUserId = getCurrentUser().getUserId();
 
     @Transactional
     public String uploadFile(MultipartFile multipartFile) throws IOException {
+        UUID currentUserId = getCurrentUser().getUserId();
 
         String originalFilename = multipartFile.getOriginalFilename() != null
                 ? multipartFile.getOriginalFilename().replace(" ", "_") : "file";
@@ -54,6 +54,7 @@ public class FileService {
 
     @Transactional
     public byte[] downloadFile(String key) throws FileDownloadException {
+        UUID currentUserId = getCurrentUser().getUserId();
         try {
             if (bucketIsEmpty()) {
                 throw new FileDownloadException("Requested bucket does not exist or is empty");
@@ -78,6 +79,7 @@ public class FileService {
 
     @Transactional
     public void deleteFile(final String keyName) {
+        UUID currentUserId = getCurrentUser().getUserId();
         final DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
                 .key(keyName)

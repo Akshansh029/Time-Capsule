@@ -412,6 +412,25 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        log.warn("Client error event=illegalState status=400 method={} uri={} userId={} errorType={} message=\"{}\" requestId={}",
+                request.getMethod(),
+                request.getRequestURI(),
+                MDC.get("userId"),
+                ex.getClass().getSimpleName(),
+                ex.getMessage(),
+                MDC.get("requestId")
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(ResendEmailException.class)
     public ResponseEntity<ErrorResponse> handleResendEmail(ResendEmailException ex, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(
@@ -419,6 +438,25 @@ public class GlobalExceptionHandler {
                 "Failed to send email",
                 ex.getMessage(),
                 request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        log.error("Server error event=illegalState status=500 method={} uri={} userId={} errorType={} message=\"{}\" requestId={}",
+                request.getMethod(),
+                request.getRequestURI(),
+                MDC.get("userId"),
+                ex.getClass().getSimpleName(),
+                ex.getMessage(),
+                MDC.get("requestId")
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
